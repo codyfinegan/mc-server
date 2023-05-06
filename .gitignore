@@ -22,3 +22,5 @@ share/python-wheels/
 MANIFEST
 .python-version
 _version.py
+.cmcconfig.toml
+.vscode

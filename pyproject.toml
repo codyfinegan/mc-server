@@ -9,9 +9,13 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "click",
-    "mctools"
+    "mctools",
+    'tomli >= 1.1.0 ; python_version < "3.11"'
 ]
 dynamic = ["version"]
+
+[project.scripts]
+cmcserver = "cmcserver.main:cli"
 
 [project.optional-dependencies]
 dev = ["flake8", "black", "isort[pyproject]", "pre-commit", "add-trailing-comma"]
@@ -22,6 +26,7 @@ write_to = "src/cmcserver/_version.py"
 [tool.black]
 target-version = ['py311']
 line_length = 88
+extend-exclude = '_version.py'
 
 [tool.isort]
 profile = "black"
