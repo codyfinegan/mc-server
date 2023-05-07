@@ -10,7 +10,7 @@ requires-python = ">=3.10"
 dependencies = [
     "click",
     "mctools",
-    'tomli >= 1.1.0 ; python_version < "3.11"'
+    "tomlkit"
 ]
 dynamic = ["version"]
 
