@@ -4,7 +4,14 @@ from pathlib import Path
 
 import click
 
-from .lib import Config, ScreenManager, ToolLoader
+from .lib import (
+    Config,
+    ScreenManager,
+    ToolLoader,
+    seconds_to_countdown,
+    start_server,
+    stop_server,
+)
 
 pass_loader = click.make_pass_decorator(ToolLoader, ensure=True)
 
@@ -15,6 +22,8 @@ pass_loader = click.make_pass_decorator(ToolLoader, ensure=True)
 @click.option("--force", is_flag=True, default=False)
 @click.pass_context
 def cli(ctx, debug, init, force):
+    """Group all of our commands together"""
+
     ctx.ensure_object(dict)
     ctx.obj = ToolLoader()
 
@@ -40,21 +49,15 @@ def cli(ctx, debug, init, force):
 def status(loader: ToolLoader):
     """See the status of the server"""
     x = loader.communicator.send(["list"])
-    print(x)
+    click.echo(x)
 
 
-@cli.command(name="server:stats")
-@pass_loader
-def ping(loader: ToolLoader):
-    print(loader.communicator.ping_server(ping=False))
-
-
-@cli.command(name="server:stop")
+@cli.command(name="stop")
 @click.option(
     "-t",
     "--time",
     default=5,
-    type=click.IntRange(0, 120),
+    type=click.IntRange(0, 600),
     help="How many seconds until shutdown?",
 )
 @click.argument("reason", type=str, default=None, required=False)
@@ -81,62 +84,52 @@ def stop(loader: ToolLoader, time: int, reason: str):
     if time > 5:
         timelib.sleep(time - 5)
 
-    # 5 second countdown
-    for i in range(5, 0, -1):
-        loader.communicator.tell_all(f"In {i}...")
-        timelib.sleep(1)
-
-    loader.communicator.tell_all("Off we go!", sound="block.bell.use")
-    timelib.sleep(1)
-    loader.communicator.send(
-        [
-            "/kick @a Sever is stopping, check Discord for info",
-            "/stop",
-        ],
-    )
+    stop_server(loader)
 
 
-@cli.command(name="server:start")
+@cli.command(name="restart")
+@click.option(
+    "-t",
+    "--time",
+    default=60,
+    type=click.IntRange(0, 600),
+    help="How many seconds until restart?",
+)
+@click.argument("reason", type=str, default=None, required=False)
+@pass_loader
+def restart(loader: ToolLoader, time: int, reason: str):
+    """Restart the server"""
+    if not ScreenManager.exists() and not loader.communicator.ping_server():
+        click.echo("The server is not running, call server:up instead.")
+        return
+
+    if not reason:
+        reason = ""
+    else:
+        reason = f" {reason}"
+
+    if time < 5:
+        time = 5
+
+    for sleep, text in seconds_to_countdown(time):
+        timelib.sleep(sleep)
+        if text:
+            loader.communicator.tell_all(
+                f"The server will restart in {text}",
+                sound="block.bell.use",
+            )
+
+    # Stop the server
+    stop_server(loader)
+
+    click.echo("Server not running, restarting...")
+
+    # Start the server
+    start_server(loader)
+
+
+@cli.command(name="start")
 @pass_loader
 def boot(loader: ToolLoader):
     """Boot the server."""
-    if ScreenManager.exists():
-        click.echo("There is already a running server (or at least a screen session.)")
-        click.echo("Run `screen -ls mcs` to see the existing processes.")
-        return
-
-    context_path = Path(loader.config.get("context_dir"))
-    startup = Path(loader.config.get("startup"))
-    startup_script = context_path.joinpath(startup)
-
-    if not ScreenManager.start(
-        loader.config.debug,
-        startup_script,
-        context_path,
-        loader.config.get("boot_pause"),
-    ):
-        raise SystemExit
-
-    # Now we want to wait for Minecraft to be up and good
-    # We're going to check about 10 times with a pause between each
-    # And try to rcon
-    # If rcon is not configured then this might be a problem
-
-    loaded = False
-    for i in range(10):
-        # We want to check if our screen window is alive
-
-        # Are we alive?
-        click.echo("Checking if the server is up yet...")
-        if loader.communicator.ping_server():
-            loaded = True
-            break
-        click.echo("Not yet, waiting a few moments...")
-        timelib.sleep(5)
-
-    if loaded:
-        click.echo("Server has been loaded.")
-    else:
-        click.echo(
-            "Could not tell if the server loaded successfully, check it out. Make sure rcon/query has been configured",
-        )
+    start_server(loader)

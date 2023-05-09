@@ -1,4 +1,5 @@
 import json
+import math
 import subprocess
 import time
 from pathlib import Path
@@ -14,6 +15,14 @@ def debug_echo(debug: bool, message: str) -> None:
         click.echo(message)
 
 
+def text_prefix(code: str = "SERVER") -> list:
+    return [
+        {"text": "[", "color": "gray"},
+        {"text": code, "color": "yellow"},
+        {"text": "] ", "color": "gray"},
+    ]
+
+
 def default_config() -> dict:
     return {
         "server": {
@@ -24,7 +33,7 @@ def default_config() -> dict:
         },
         "context_dir": "/path/to/game/folder",
         "startup": "startup_script.sh",
-        "boot_pause": 15,
+        "boot_pause": 25,
     }
 
 
@@ -203,16 +212,24 @@ class Communicator:
         message: str,
         formatted: bool = False,
         color: str = "gray",
-        italic: bool = True,
+        italic: bool = False,
         play_sound: bool = True,
         sound: str = "ui.button.click",
+        prefixed: bool = True,
     ):
         if not formatted:
-            message = {
-                "text": message,
-                "color": color,
-                "italic": italic,
-            }
+            click.echo(message)
+            message = [
+                {
+                    "text": message,
+                    "color": color,
+                    "italic": italic,
+                },
+            ]
+
+            if prefixed:
+                message = text_prefix() + message
+
             message = json.dumps(message)
 
         commands = [
@@ -269,3 +286,148 @@ class ScreenManager:
 
         # Screen has loaded, we don't know about the server but screen is running
         return True
+
+
+def seconds_to_time_text(seconds: int) -> str:
+    t_mins = math.floor(seconds / 60)
+    t_seconds = seconds % 60
+
+    if t_mins == 1 and t_seconds:
+        return f"{t_mins} minute and {t_seconds} seconds"
+    if t_mins and t_seconds:
+        return f"{t_mins} minutes and {t_seconds} seconds"
+    if t_mins and t_mins == 1:
+        return f"{t_mins} minute"
+    if t_mins:
+        return f"{t_mins} minutes"
+    if t_seconds > 9:
+        return f"{t_seconds} seconds"
+    return f"{t_seconds}"
+
+
+def seconds_to_countdown(seconds: int, range: List[int] = None) -> list:
+    # Be given a range of seconds, then break it down
+    # into call points, and how long to wait in between each
+
+    if seconds < 5:
+        seconds = 10
+
+    if range is None:
+        range = [600, 300, 180, 120, 60, 30, 10, 5]
+
+    countdown = []
+
+    # Find our range
+    t_range = []
+    for step in range:
+        if seconds >= step:
+            t_range.append(step)
+
+    upper = max(t_range)
+    if seconds > upper:
+        t_range.insert(0, seconds)
+
+    # Now build our actual call object
+    last = max(t_range)
+    for step in t_range:
+        countdown.append((last - step, seconds_to_time_text(step)))
+        last = step
+
+    last_r = countdown.pop()
+    countdown.append((last_r[0], None))
+
+    return countdown
+
+
+def start_server(loader: ToolLoader):
+    if ScreenManager.exists():
+        click.echo("There is already a running server (or at least a screen session.)")
+        click.echo("Run `screen -ls mcs` to see the existing processes.")
+        return
+
+    context_path = Path(loader.config.get("context_dir"))
+    startup = Path(loader.config.get("startup"))
+    startup_script = context_path.joinpath(startup)
+
+    if not ScreenManager.start(
+        loader.config.debug,
+        startup_script,
+        context_path,
+        loader.config.get("boot_pause"),
+    ):
+        raise SystemExit
+
+    # Now we want to wait for Minecraft to be up and good
+    # We're going to check about 10 times with a pause between each
+    # And try to rcon
+    # If rcon is not configured then this might be a problem
+
+    loaded = False
+    for i in range(10):
+        # We want to check if our screen window is alive
+
+        # Are we alive?
+        click.echo("Checking if the server is up yet...")
+        if loader.communicator.ping_server():
+            loaded = True
+            break
+        click.echo("Not yet, waiting a few moments...")
+        time.sleep(5)
+
+    if loaded:
+        click.echo("Server has been loaded.")
+    else:
+        click.echo(
+            "Could not tell if the server loaded successfully, check it out. Make sure rcon/query has been configured",
+        )
+
+
+def stop_server(loader: ToolLoader):
+    # 5 second countdown
+    make_boss_bar(loader, "Stopping in...", 5)
+    for i in range(5, 0, -1):
+        countdown_boss_bar(loader, i)
+        loader.communicator.tell_all(f"In {i}...")
+        time.sleep(1)
+    remove_boss_bar(loader)
+
+    loader.communicator.tell_all("Off we go!", sound="block.bell.use")
+    time.sleep(1)
+    loader.communicator.send(
+        [
+            "/kick @a Sever is stopping, check Discord for info",
+            "/stop",
+        ],
+    )
+
+    # Now wait
+    time.sleep(5)
+    if ScreenManager.exists():
+        down = False
+        for i in range(1, 100):
+            if not ScreenManager.exists():
+                down = True
+                break
+            time.sleep(2)
+
+    if down:
+        click.echo("Server has stopped")
+    else:
+        click.echo(
+            "Waited, but could not tell if the server stopped. Try checking screen.",
+        )
+
+
+def make_boss_bar(loader: ToolLoader, name: str, start: int):
+    print(loader.communicator.send(f'/bossbar add timer "{name}"'))
+    print(loader.communicator.send(f"/bossbar set timer max {start}"))
+    print(loader.communicator.send(f"/bossbar set timer value {start}"))
+    print(loader.communicator.send("/bossbar set timer players @a"))
+
+
+def countdown_boss_bar(loader: ToolLoader, value: int):
+    print(loader.communicator.send(f"/bossbar set timer value {value}"))
+
+
+def remove_boss_bar(loader: ToolLoader):
+    print(loader.communicator.send("/bossbar remove timer"))
