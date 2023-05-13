@@ -24,3 +24,4 @@ MANIFEST
 _version.py
 .cmcconfig.toml
 .vscode
+.idea

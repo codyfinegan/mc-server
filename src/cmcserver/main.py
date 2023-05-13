@@ -1,17 +1,23 @@
 import os
-import time as timelib
 from pathlib import Path
 
 import click
 
-from .lib import (
-    Config,
-    ScreenManager,
-    ToolLoader,
-    seconds_to_countdown,
-    start_server,
-    stop_server,
-)
+from .backup import BackupManager
+from .configuration import Config
+from .server import ServerManager
+
+
+class ToolLoader:
+    """Middleman just to make the communicator and config available to commands."""
+
+    def setup(self, config: Config):
+        self.config = config
+        self.server = ServerManager(self.config)
+
+    def decouple(self):
+        return self.config, self.communicator
+
 
 pass_loader = click.make_pass_decorator(ToolLoader, ensure=True)
 
@@ -48,7 +54,7 @@ def cli(ctx, debug, init, force):
 @pass_loader
 def status(loader: ToolLoader):
     """See the status of the server"""
-    x = loader.communicator.send(["list"])
+    x = loader.server.rcon_send(["list"])
     click.echo(x)
 
 
@@ -64,27 +70,14 @@ def status(loader: ToolLoader):
 @pass_loader
 def stop(loader: ToolLoader, time: int, reason: str):
     """Stop the server"""
-    if not ScreenManager.exists() and not loader.communicator.ping_server():
-        click.echo("The server is not running.")
-        return
+    loader.server.stop(reason, time)
 
-    if not reason:
-        reason = ""
-    else:
-        reason = f" {reason}"
 
-    if time < 5:
-        time = 5
-
-    loader.communicator.tell_all(
-        f"The server is stopping in {time} seconds",
-        sound="block.bell.use",
-    )
-
-    if time > 5:
-        timelib.sleep(time - 5)
-
-    stop_server(loader)
+@cli.command(name="start")
+@pass_loader
+def start(loader: ToolLoader):
+    """Boot the server."""
+    loader.server.start()
 
 
 @cli.command(name="restart")
@@ -99,37 +92,55 @@ def stop(loader: ToolLoader, time: int, reason: str):
 @pass_loader
 def restart(loader: ToolLoader, time: int, reason: str):
     """Restart the server"""
-    if not ScreenManager.exists() and not loader.communicator.ping_server():
-        click.echo("The server is not running, call server:up instead.")
+    loader.server.stop(reason, time, "restarting")
+    loader.server.start()
+
+
+@cli.command(name="backup")
+@click.option(
+    "--incremental",
+    is_flag=True,
+    default=False,
+    help="Backs up into the incremental folder",
+)
+@click.option(
+    "--sync",
+    is_flag=True,
+    default=False,
+    help="Pushes the backup up to the remote storage.",
+)
+@pass_loader
+def backup(loader: ToolLoader, incremental: bool, sync: bool):
+    """Create a backup of the world folder into the backups folder."""
+    server = loader.server
+
+    backup_manager = BackupManager(server=server, incremental=incremental)
+
+    # Tell people the backup is happening
+    server.tell_all("Saving the world...", play_sound=False)
+
+    # Sync the content across
+    backup_manager.sync_world_folder()
+
+    if incremental:
+        if not sync:
+            backup_manager.git_push()
+            pass
+
+        server.tell_all("Save complete", play_sound=False)
         return
 
-    if not reason:
-        reason = ""
-    else:
-        reason = f" {reason}"
+    # Compress the full backup
+    success, file = backup_manager.compress_backup()
+    if not success:
+        click.echo(f"Backup failed to compress, expected {file}")
+        return
 
-    if time < 5:
-        time = 5
+    click.echo(f"Backup saved in {file}")
+    server.tell_all("Save complete", play_sound=False)
 
-    for sleep, text in seconds_to_countdown(time):
-        timelib.sleep(sleep)
-        if text:
-            loader.communicator.tell_all(
-                f"The server will restart in {text}",
-                sound="block.bell.use",
-            )
+    if not sync:
+        click.echo("No syncing, backup complete.")
+        return
 
-    # Stop the server
-    stop_server(loader)
-
-    click.echo("Server not running, restarting...")
-
-    # Start the server
-    start_server(loader)
-
-
-@cli.command(name="start")
-@pass_loader
-def boot(loader: ToolLoader):
-    """Boot the server."""
-    start_server(loader)
+    backup_manager.aws_sync()
