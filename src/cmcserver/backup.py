@@ -97,8 +97,21 @@ class BackupManager:
         else:
             return False, compressed_name
 
-    def git_push(self):
-        click.echo("TODO - incremental sync")
+    def git_sync(self):
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
+        command = [
+            "git",
+            "commit",
+            "-am",
+            f"Backup at {timestamp}",
+        ]
+
+        subprocess.call(
+            command,
+            cwd=str(self.backup_dest_world),
+            stderr=subprocess.STDOUT,
+        )
+
         pass
 
     def aws_sync(self, upload: bool = False, download: bool = False, limit: int = 2):

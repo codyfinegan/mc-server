@@ -18,8 +18,13 @@ def default_config() -> dict:
             "incremental": "incremental",
             "compress": "/usr/bin/zstd -19 -T2",
             "name": "%s.tar.zst",
-            "aws_bucket": "",
-            "aws_subfolder": "",
+            "aws": {
+                "bucket": "",
+                "subfolder": "",
+            },
+            "git": {
+                "push": False,
+            },
         },
         "startup_script": "/path/to/startup_script.sh",
         "game_folder": "/path/to/game",
@@ -84,18 +89,26 @@ def default_config_toml() -> tomlkit.document:
     table.add("incremental", cfg["backups"]["incremental"])
     table.add("compress", cfg["backups"]["compress"])
     table.add("name", cfg["backups"]["name"])
-    table.add("aws_bucket", cfg["backups"]["aws_bucket"])
-    table.add("aws_subfolder", cfg["backups"]["aws_subfolder"])
+
+    aws = tomlkit.table()
+    aws.add("bucket", cfg["backups"]["aws"]["bucket"])
+    aws.add("subfolder", cfg["backups"]["aws"]["subfolder"])
+    aws["bucket"].comment(
+        "Bucket to store full backups in.",
+    )
+    aws["subfolder"].comment(
+        "Path inside the bucket to store backups in.",
+    )
+    table.add("aws", aws)
+
+    git = tomlkit.table()
+    git.add("push", tomlkit.boolean(cfg["backups"]["git"]["push"]))
+    table.add("git", git)
+
     table["folder"].comment("Base path to the backups folder")
     table["compress"].comment("Command to apply compression to the backups")
     table["name"].comment(
         "Syntax of the backup filename. If compression changes, change the extension here.",
-    )
-    table["aws_bucket"].comment(
-        "Bucket to store full backups in.",
-    )
-    table["aws_subfolder"].comment(
-        "Path inside the bucket to store backups in.",
     )
     doc.add("backups", table)
 

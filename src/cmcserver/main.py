@@ -123,8 +123,8 @@ def backup(loader: ToolLoader, incremental: bool, sync: bool):
     backup_manager.sync_world_folder()
 
     if incremental:
-        if not sync:
-            backup_manager.git_push()
+        if sync:
+            backup_manager.git_sync()
             pass
 
         server.tell_all("Save complete", play_sound=False)
@@ -169,7 +169,21 @@ def backup(loader: ToolLoader, incremental: bool, sync: bool):
 )
 @pass_loader
 def sync_backup_aws(loader: ToolLoader, download: bool, upload: bool, limit: int):
-    """Upload and download full backup files to a configured S3 bucket."""
+    """Upload and download full backup files to a configured S3 bucket"""
     backup_manager = BackupManager(server=loader.server, incremental=False)
 
     backup_manager.aws_sync(upload=upload, download=download, limit=limit)
+
+
+@cli.command(name="backup:sync-git")
+@click.option(
+    "--push",
+    is_flag=True,
+    default=False,
+    help="Push the results up",
+)
+@pass_loader
+def sync_backup_git(loader: ToolLoader, push: bool):
+    """Upload incremental changes to git"""
+    backup_manager = BackupManager(server=loader.server, incremental=True)
+    backup_manager.git_sync()
