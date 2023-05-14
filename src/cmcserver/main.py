@@ -143,4 +143,32 @@ def backup(loader: ToolLoader, incremental: bool, sync: bool):
         click.echo("No syncing, backup complete.")
         return
 
-    backup_manager.aws_sync()
+    # Upload the most recent backup file
+    backup_manager.aws_sync(upload=True, limit=1)
+    click.echo("Sync complete")
+
+
+@cli.command(name="sync_backup_aws")
+@click.option(
+    "--download",
+    is_flag=True,
+    default=False,
+    help="Download missing files from AWS to the local backups folder",
+)
+@click.option(
+    "--upload",
+    is_flag=True,
+    default=False,
+    help="Upload missing files to AWS",
+)
+@click.option(
+    "--limit",
+    default=1,
+    type=click.IntRange(0, 20),
+    help="Number of files to upload or download",
+)
+@pass_loader
+def sync_backup_aws(loader: ToolLoader, download: bool, upload: bool, limit: int):
+    backup_manager = BackupManager(server=loader.server, incremental=False)
+
+    backup_manager.aws_sync(upload=upload, download=download, limit=limit)
