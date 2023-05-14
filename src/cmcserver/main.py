@@ -148,7 +148,7 @@ def backup(loader: ToolLoader, incremental: bool, sync: bool):
     click.echo("Sync complete")
 
 
-@cli.command(name="sync_backup_aws")
+@cli.command(name="backup:sync-aws")
 @click.option(
     "--download",
     is_flag=True,
@@ -169,6 +169,7 @@ def backup(loader: ToolLoader, incremental: bool, sync: bool):
 )
 @pass_loader
 def sync_backup_aws(loader: ToolLoader, download: bool, upload: bool, limit: int):
+    """Upload and download full backup files to a configured S3 bucket."""
     backup_manager = BackupManager(server=loader.server, incremental=False)
 
     backup_manager.aws_sync(upload=upload, download=download, limit=limit)
