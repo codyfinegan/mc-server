@@ -26,15 +26,25 @@ pass_loader = click.make_pass_decorator(ToolLoader, ensure=True)
 @click.option("--debug/--no-debug", default=False)
 @click.option("--init", is_flag=True, default=False)
 @click.option("--force", is_flag=True, default=False)
+@click.option(
+    "-C",
+    "--config",
+    type=click.Path(exists=True),
+    default=None,
+    multiple=False,
+)
 @click.pass_context
-def cli(ctx, debug, init, force):
+def cli(ctx, debug, init, force, config):
     """Group all of our commands together"""
 
     ctx.ensure_object(dict)
     ctx.obj = ToolLoader()
 
-    config_folder = os.environ.get("CMC_CONFIG", str(Path.home()))
-    config_path = Path(config_folder).joinpath(".cmcconfig.toml")
+    if config:
+        config_path = Path(config)
+    else:
+        config_folder = os.environ.get("CMC_CONFIG", str(Path.home()))
+        config_path = Path(config_folder).joinpath(".cmcconfig.toml")
 
     # Are we running init?
     if init:
