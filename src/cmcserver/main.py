@@ -148,7 +148,7 @@ def backup(loader: ToolLoader, incremental: bool, sync: bool):
     click.echo("Sync complete")
 
 
-@cli.command(name="backup:sync-aws")
+@cli.command(name="backup:sync:aws")
 @click.option(
     "--download",
     is_flag=True,
@@ -175,7 +175,7 @@ def sync_backup_aws(loader: ToolLoader, download: bool, upload: bool, limit: int
     backup_manager.aws_sync(upload=upload, download=download, limit=limit)
 
 
-@cli.command(name="backup:sync-git")
+@cli.command(name="backup:sync:git")
 @click.option(
     "--push",
     is_flag=True,
@@ -187,3 +187,30 @@ def sync_backup_git(loader: ToolLoader, push: bool):
     """Upload incremental changes to git"""
     backup_manager = BackupManager(server=loader.server, incremental=True)
     backup_manager.git_sync()
+
+
+@cli.command("backup:prune:local")
+@click.option(
+    "--count",
+    default=10,
+    type=click.IntRange(0, 20),
+    help="Number of backups to keep locally",
+)
+@pass_loader
+def prune_local(loader: ToolLoader, count: int):
+    backup_manager = BackupManager(server=loader.server, incremental=False)
+    backup_manager.prune_local(count)
+    click.echo("Prune complete")
+
+
+@cli.command("backup:prune:local")
+@click.option(
+    "--count",
+    default=10,
+    type=click.IntRange(0, 20),
+    help="Number of backups to keep in AWS",
+)
+@pass_loader
+def prune_aws(loader: ToolLoader, count: int):
+    backup_manager = BackupManager(server=loader.server, incremental=False)
+    backup_manager.prune_aws(count)

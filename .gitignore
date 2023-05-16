@@ -25,3 +25,4 @@ _version.py
 .cmcconfig.toml
 .vscode
 .idea
+run-as-cron

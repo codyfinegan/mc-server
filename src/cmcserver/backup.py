@@ -97,7 +97,7 @@ class BackupManager:
         else:
             return False, compressed_name
 
-    def git_sync(self):
+    def git_sync(self, push):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
         command = [
             "git",
@@ -112,7 +112,16 @@ class BackupManager:
             stderr=subprocess.STDOUT,
         )
 
-        pass
+        if push:
+            command = [
+                "git",
+                "push",
+            ]
+            subprocess.call(
+                command,
+                cwd=str(self.backup_dest_world),
+                stderr=subprocess.STDOUT,
+            )
 
     def aws_sync(self, upload: bool = False, download: bool = False, limit: int = 2):
         """Sync the backups folder with AWS S3
@@ -193,3 +202,44 @@ class BackupManager:
             click.echo(
                 f"Not downloading - {len(to_download)} potentially (max {limit})",
             )
+
+    def prune_local(self, count: int):
+        # Load the list of files
+        path = Path(self.backup_dest)
+        paths = list()
+        for file in path.rglob(self.server.config.tree("backups", "name") % "*"):
+            if file.is_dir():
+                continue
+            paths.append(str(file).replace(f"{str(path)}/", ""))
+
+        paths = sorted(paths)[0:-count]
+        for file_path in paths:
+            path.joinpath(file_path).unlink()
+            click.echo(f"Deleting {file_path}")
+
+    def prune_aws(self, count: int):
+        if self.incremental:
+            click.echo("Cannot prune in incremental mode")
+            return self
+
+        bucket = self.server.config.tree("backups", "aws_bucket")
+        if not bucket or len(bucket) == 0:
+            click.echo("No backups.aws_bucket is defined in config.")
+            return
+        subfolder = self.server.config.tree("backups", "aws_subfolder")
+        if len(subfolder):
+            subfolder = f"{subfolder}/"
+
+        s3 = boto3.client("s3")
+        try:
+            objects = s3.list_objects_v2(
+                Bucket=bucket,
+                Prefix=subfolder,
+                EncodingType="url",
+            )["Contents"]
+            if len(objects) > 0:
+                contents = list([obj["Key"].replace(subfolder, "") for obj in objects])
+        except KeyError:
+            contents = list()
+
+        print(contents)
