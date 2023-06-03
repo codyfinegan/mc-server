@@ -172,12 +172,15 @@ class ServerManager:
             click.echo(f"Command: {' '.join(command)}")
             return False
 
-        subprocess.call(
+        code = subprocess.call(
             command,
             cwd=str(startup_script.parent),
-            stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )
+        if code == 1 and not self.screen_exists():
+            click.echo("There was an error with the startup script.")
+            raise SystemExit
+
         time.sleep(sleep)
 
         # Check, is our screen running?
@@ -305,7 +308,7 @@ class ServerManager:
         time.sleep(1)
         self.rcon_send(
             [
-                "/kick @a Sever is {action}, check Discord for info",
+                f"/kick @a Sever is {action}, check Discord for info",
                 "/stop",
             ],
         )

@@ -2,6 +2,7 @@ from pathlib import Path
 
 import click
 import tomlkit
+from tomlkit.items import String, Table
 
 
 def default_config() -> dict:
@@ -28,32 +29,37 @@ def default_config() -> dict:
         },
         "startup_script": "/path/to/startup_script.sh",
         "game_folder": "/path/to/game",
+        "mod_script": "/path/to/mod_downloads.sh",
         "world": "world",
         "boot_pause": 25,
     }
 
 
-def default_config_toml() -> tomlkit.document:
+def default_config_toml() -> tomlkit.TOMLDocument:
     cfg = default_config()
     doc = tomlkit.document()
     doc.add(tomlkit.comment("Configuration for cmcserver command"))
     doc.add(tomlkit.nl())
 
     doc.add("startup_script", cfg["startup_script"])
-    doc["startup_script"].comment(
+    doc["startup_script"].comment(  # type: ignore
         "Full path to the startup script.",
     )
     doc.add("game_folder", cfg["game_folder"])
-    doc["game_folder"].comment(
+    doc["game_folder"].comment(  # type: ignore
         "The path to the minecraft base folder that holds the world_name",
     )
     doc.add("world", cfg["world"])
-    doc["world"].comment(
+    doc["world"].comment(  # type: ignore
         "Name of the minecraft game folder",
     )
     doc.add("boot_pause", cfg["boot_pause"])
-    doc["boot_pause"].comment(
+    doc["boot_pause"].comment(  # type: ignore
         "How long to wait for the server to start before continuing. Increase this if needed.",
+    )
+    doc.add("mod_script", cfg["mod_script"])
+    doc["mod_script"].comment(  # type: ignore
+        "Full path to the script used to download mods.",
     )
     doc.add(tomlkit.nl())
 
@@ -126,26 +132,49 @@ class Config:
     def __str__(self) -> str:
         return str(self.data)
 
-    def get(self, key):
+    def get(self, key) -> str | dict | None:
         if key in self.data:
             return self.data[key]
         return None
 
-    def tree(self, *keys):
+    def get_str(self, key) -> str:
+        val = self.get(key)
+        if type(val) == str:
+            return val
+        if type(val) == String:
+            return str(val)
+        raise TypeError(f"{key} was not a string (was {type(val)})")
+
+    def get_dict(self, key) -> dict:
+        val = self.get(key)
+        if type(val) == dict:
+            return val
+        if type(val) == Table:
+            return dict(val)
+
+        raise TypeError(f"{key} was not a dict (was {type(val)})")
+
+    def tree(self, *keys) -> str | dict | None:
         val = self.data
         for key in keys:
-            if key in val:
+            if type(val) == dict and key in val:
                 val = val[key]
             else:
                 val = None
         return val
 
+    def tree_str(self, *keys) -> str:
+        val = self.tree(keys)
+        if type(val) == str:
+            return val
+        raise TypeError(f"{'.'.join(keys)} was not a string")
+
     @classmethod
-    def load(cls, config_file: str, debug: bool):
+    def load(cls, config_file: Path, debug: bool):
         """Parse the provided config file and return a config instance.
 
         Args:
-            config_file (str): TOML file config path.
+            config_file (Path): TOML file config path.
 
         Raises:
             SystemExit: Will exit if the file does not exist.
@@ -153,8 +182,6 @@ class Config:
         Returns:
             Config: Returns an instance of the Config class
         """
-        config_file = Path(config_file)
-
         # Don't create the file if it doesn't exist, make them do it
         if not config_file.exists():
             click.echo(f"Config is read from: {config_file}")
@@ -168,23 +195,16 @@ class Config:
             return cls(data, debug)
 
     @classmethod
-    def write(cls, config_file: str, force: bool):
-        """Create a default config file in the provided path.
-
-        Args:
-            config_file (str): Path to the config file.
-        """
-        if config_file.exists():
-            click.echo(f"Config is read from: {config_file}")
-            if not force:
-                click.echo(
-                    "Config file already exists. Please delete it if you want to init again.",
-                )
-                return
-
-        config_file = Path(config_file)
+    def dumps(cls):
         doc = default_config_toml()
+        return str(tomlkit.dumps(doc))
+
+    @classmethod
+    def write(cls, config_file: Path):
+        """Create a default config file in the provided path."""
+
+        doc = default_config_toml()
+        click.echo(tomlkit.dumps(doc))
 
         with open(config_file, mode="wt", encoding="utf-8") as fp:
             tomlkit.dump(doc, fp)
-            click.echo(f"Created config file {config_file}")

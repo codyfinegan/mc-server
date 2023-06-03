@@ -13,7 +13,7 @@ class BackupManager:
         self.server = server
         self.cfg = server.config
         self.incremental = incremental
-        self.cfg_backups = self.server.config.get("backups")
+        self.cfg_backups = self.server.config.get_dict("backups")
 
         # Calculate the backup folder
         self.backup_dest_base = Path(self.cfg_backups["folder"])
@@ -26,11 +26,11 @@ class BackupManager:
         if not self.backup_dest.exists():
             self.backup_dest.mkdir(parents=True)
 
-        self.backup_source = Path(self.cfg.get("game_folder")).joinpath(
-            self.cfg.get("world"),
+        self.backup_source = Path(self.cfg.get_str("game_folder")).joinpath(
+            self.cfg.get_str("world"),
         )
 
-        self.backup_dest_world = self.backup_dest.joinpath(self.cfg.get("world"))
+        self.backup_dest_world = self.backup_dest.joinpath(self.cfg.get_str("world"))
 
         if not self.backup_source.exists():
             click.echo(f"Game folder does not exist: {self.backup_source}")
@@ -55,8 +55,7 @@ class BackupManager:
 
     def compress_backup(self):
         if self.incremental:
-            click.echo("Cannot compress incremental.")
-            return self
+            raise click.UsageError("Cannot compress incremental.")
 
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
         compressed_name = (
@@ -97,7 +96,7 @@ class BackupManager:
         else:
             return False, compressed_name
 
-    def git_sync(self, push):
+    def git_sync(self, push: bool = False):
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
         command = [
             "git",
@@ -135,11 +134,11 @@ class BackupManager:
             click.echo("Cannot AWS ship incremental")
             return self
 
-        bucket = self.server.config.tree("backups", "aws_bucket")
+        bucket = self.server.config.tree_str("backups", "aws_bucket")
         if not bucket or len(bucket) == 0:
             click.echo("No backups.aws_bucket is defined in config.")
             return
-        subfolder = self.server.config.tree("backups", "aws_subfolder")
+        subfolder = self.server.config.tree_str("backups", "aws_subfolder")
         if len(subfolder):
             subfolder = f"{subfolder}/"
 
@@ -147,7 +146,7 @@ class BackupManager:
         path = Path(self.backup_dest)
         paths = list()
 
-        for file in path.rglob(self.server.config.tree("backups", "name") % "*"):
+        for file in path.rglob(self.server.config.tree_str("backups", "name") % "*"):
             if file.is_dir():
                 continue
             paths.append(str(file).replace(f"{str(path)}/", ""))
@@ -155,6 +154,7 @@ class BackupManager:
         paths = set(sorted(paths))
 
         s3 = boto3.client("s3")
+        contents = set()
         try:
             objects = s3.list_objects_v2(
                 Bucket=bucket,
@@ -164,7 +164,7 @@ class BackupManager:
             if len(objects) > 0:
                 contents = set([obj["Key"].replace(subfolder, "") for obj in objects])
         except KeyError:
-            contents = set()
+            pass
 
         combined = paths.union(contents)
         valid_files = set(sorted(combined, reverse=True)[0:limit])
@@ -207,7 +207,7 @@ class BackupManager:
         # Load the list of files
         path = Path(self.backup_dest)
         paths = list()
-        for file in path.rglob(self.server.config.tree("backups", "name") % "*"):
+        for file in path.rglob(self.server.config.tree_str("backups", "name") % "*"):
             if file.is_dir():
                 continue
             paths.append(str(file).replace(f"{str(path)}/", ""))
@@ -222,15 +222,16 @@ class BackupManager:
             click.echo("Cannot prune in incremental mode")
             return self
 
-        bucket = self.server.config.tree("backups", "aws_bucket")
+        bucket = self.server.config.tree_str("backups", "aws_bucket")
         if not bucket or len(bucket) == 0:
             click.echo("No backups.aws_bucket is defined in config.")
             return
-        subfolder = self.server.config.tree("backups", "aws_subfolder")
+        subfolder = self.server.config.tree_str("backups", "aws_subfolder")
         if len(subfolder):
             subfolder = f"{subfolder}/"
 
-        s3 = boto3.client("s3")
+        s3 = boto3.client("s3")  # type: ignore
+        contents = list()
         try:
             objects = s3.list_objects_v2(
                 Bucket=bucket,
@@ -240,6 +241,6 @@ class BackupManager:
             if len(objects) > 0:
                 contents = list([obj["Key"].replace(subfolder, "") for obj in objects])
         except KeyError:
-            contents = list()
+            pass
 
         print(contents)
