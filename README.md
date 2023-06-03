@@ -1,6 +1,7 @@
 # mc-server
 A python utility to manage my Minecraft server
 
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/codyfinegan/mc-server/main.svg)](https://results.pre-commit.ci/latest/github/codyfinegan/mc-server/main) ![python tests](https://github.com/codyfinegan/mc-server/actions/workflows/python-test.yml/badge.svg)
 
 ## Installation
 Requires `zstd` for backup compression. Try `apt install zstd`.
