@@ -16,6 +16,7 @@ startup_script = "/path/to/startup_script.sh" # Full path to the startup script.
 game_folder = "/path/to/game" # The path to the minecraft base folder that holds the world_name
 world = "world" # Name of the minecraft game folder
 boot_pause = 25 # How long to wait for the server to start before continuing. Increase this if needed.
+mod_script = "/path/to/mod_downloads.sh" # Full path to the script used to download mods.
 
 [server]
 # Options related to server access, check your server.properties file.
@@ -33,8 +34,13 @@ full = "full"
 incremental = "incremental"
 compress = "/usr/bin/zstd -19 -T2" # Command to apply compression to the backups
 name = "%s.tar.zst" # Syntax of the backup filename. If compression changes, change the extension here.
-aws_bucket = "" # Bucket to store full backups in.
-aws_subfolder = "" # Path inside the bucket to store backups in.
+
+[backups.aws]
+bucket = "" # Bucket to store full backups in.
+subfolder = "" # Path inside the bucket to store backups in.
+
+[backups.git]
+push = false
 ```
 
 ### Commands

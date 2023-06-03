@@ -208,3 +208,27 @@ class Config:
 
         with open(config_file, mode="wt", encoding="utf-8") as fp:
             tomlkit.dump(doc, fp)
+
+    def flatten(self):
+        def process(collection, prefix=""):
+            data = []
+            for key, settings in collection:
+                if type(settings) == dict or type(settings) == Table:
+                    data = data + process(settings.items(), prefix=f"{prefix}{key}.")
+                elif type(settings) == bool:
+                    data.append((f"{prefix}{key}:", "True" if settings else "False"))
+                elif not settings and type(settings) != int:
+                    data.append((f"{prefix}{key}:", "None"))
+                elif "password" in key:
+                    data.append((f"{prefix}{key}:", "*****"))
+                else:
+                    data.append((f"{prefix}{key}:", settings))
+            return data
+
+        data = process(self.data.items())
+        width = max([len(prefix) for prefix, x in data]) + 2
+        data_list = [
+            ("{:<" + str(width) + "}{}").format(key, setting) for key, setting in data
+        ]
+        data_list.sort()
+        return "\n".join(data_list)

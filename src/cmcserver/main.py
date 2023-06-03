@@ -11,6 +11,10 @@ from .server import ServerManager
 class ToolLoader:
     """Middleman just to make the communicator and config available to commands."""
 
+    config: Config
+    server: ServerManager
+    config_path: str
+
     def __init__(self, config_path) -> None:
         self.config_path = config_path
 
@@ -270,8 +274,9 @@ def prune_local(loader: ToolLoader, count: int):
 @pass_loader
 def download_mods(loader: ToolLoader):
     """Run the download mods script if it is defined"""
-    script_path = loader.config.get("mod_script") or ""
-    if type(script_path) != str or len(script_path) == 0:
+
+    script_path = str(loader.config.get("mod_script") or "")
+    if len(script_path) == 0:
         raise click.UsageError(
             "Must define a mod_script config to a shell script to run.",
         )
@@ -292,8 +297,8 @@ def download_mods(loader: ToolLoader):
         command,
         cwd=str(script.parent),
         stderr=STDOUT,
+        stdout=STDOUT,
     )
-
     click.echo("Complete")
 
 
@@ -306,11 +311,37 @@ def download_mods(loader: ToolLoader):
 )
 @click.option("--delete", is_flag=True, default=False, help="Delete the config file")
 @click.option("--path", is_flag=True, default=False, help="Path of the config file")
+@click.option(
+    "--default",
+    is_flag=True,
+    default=False,
+    help="Show the default config option",
+)
+@click.option(
+    "--raw",
+    is_flag=True,
+    default=False,
+    help="Show the value of the config file",
+)
+@click.option("--config", hidden=True, type=click.Path(dir_okay=False), default=None)
 @pass_loader
-def config(loader: ToolLoader, edit: bool, delete: bool, path: bool):
+def config(
+    loader: ToolLoader,
+    edit: bool,
+    delete: bool,
+    path: bool,
+    default: bool,
+    raw: bool,
+    config,
+):
     """Edit the configuration file, or generate it if it does not exist."""
-    config_file = Path(loader.config_path)
+
+    config_file = Path(config or loader.config_path)
     config_file_str = click.format_filename(config_file)
+
+    if default:
+        click.echo(Config.dumps())
+        return
 
     exists = config_file.exists()
 
@@ -335,10 +366,12 @@ def config(loader: ToolLoader, edit: bool, delete: bool, path: bool):
         return
 
     if delete:
-        if exists:
-            config_file.unlink()
-            click.echo("Delted config file")
-            return
+        config_file.unlink()
+        click.echo("Deleted the config file")
         return
 
-    click.echo(config_file.read_text())
+    if raw:
+        click.echo(config_file.read_text())
+    else:
+        cfg = Config.load(config_file, False)
+        click.echo(cfg.flatten())
