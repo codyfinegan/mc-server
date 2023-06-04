@@ -28,7 +28,7 @@ def test_config(monkeypatch):
     runner = CliRunner()
     with runner.isolated_filesystem() as r:
         config_file = Path(r).joinpath("cmcserver.toml")
-        output = runner.invoke(cli, ["config", "--path", "--config", str(config_file)])
+        output = runner.invoke(cli, ["config", "--config", str(config_file)])
         assert "cmcserver.toml" in output.output
 
         output = runner.invoke(
@@ -69,13 +69,14 @@ def test_download_mods(monkeypatch):
     runner = CliRunner()
     with runner.isolated_filesystem() as r:
         config = Config(dict(), False)
+        config_file = Path(r).joinpath("cmcserver.toml")
 
         def set_config(key, value):
             config.data[key] = value
             monkeypatch.setattr(Config, "load", lambda x, y: config)
 
         def invoke(debug=False):
-            output = runner.invoke(cli, ["mods"])
+            output = runner.invoke(cli, ["--config", str(config_file), "mods"])
             return output.output
 
         # Assert validation on failure
@@ -108,6 +109,7 @@ def test_generate_readme(monkeypatch):
     runner = CliRunner()
     with runner.isolated_filesystem() as r:
         readme = Path(r).joinpath("readme.md")
+        config_file = Path(r).joinpath("cmcserver.toml")
         default_readme = [
             "GAP0",
             "[//]: # (config-start)",
@@ -130,7 +132,10 @@ def test_generate_readme(monkeypatch):
         assert "CONFIG_HERE" in content
         assert "COMMANDS_HERE" in content
 
-        output = runner.invoke(cli, ["readme", str(readme)])
+        output = runner.invoke(
+            cli,
+            ["--config", str(config_file), "readme", str(readme)],
+        )
         assert "Readme has been updated" in output.output
 
         with open(readme) as f:

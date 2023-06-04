@@ -1,3 +1,4 @@
+import os
 import pathlib
 from pathlib import Path
 from shutil import get_terminal_size
@@ -92,19 +93,23 @@ def cli(ctx: click.Context, debug, config):
     """Group all of our commands together"""
     ctx.ensure_object(dict)
 
+    config_path = ""
     if config:
         config_path = Path(config)
-    else:
+    elif "PYTEST_CURRENT_TEST" not in os.environ:
         config_path = Path(click.get_app_dir("cmcserver.toml"))
 
     ctx.obj = ToolLoader(config_path)
 
-    if ctx.invoked_subcommand == "config":
+    if ctx.invoked_subcommand in ("config", "readme", "backup", "server"):
         return
 
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
         ctx.exit()
+
+    if not config_path:
+        raise click.UsageError("No config file was defined")
 
     ctx.obj.setup(Config.load(config_path, debug))
 
