@@ -58,7 +58,7 @@ class DetailedGroup(click.Group):
 
         groups = command_tree(ctx.command.commands.items())
         if len(groups):
-            limit = 120
+            limit = get_terminal_size().columns
 
             formatter.write_paragraph()
 
