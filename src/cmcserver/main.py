@@ -1,3 +1,4 @@
+import pathlib
 from pathlib import Path
 from shutil import get_terminal_size
 
@@ -33,8 +34,55 @@ class DetailedGroup(click.Group):
         formatter.width = get_terminal_size().columns
         super().format_help(ctx, formatter)
 
+    def format_commands(
+        self,
+        ctx: click.Context,
+        formatter: click.HelpFormatter,
+    ) -> None:
+        if not isinstance(ctx.command, DetailedGroup):
+            super().format_commands(ctx, formatter)
+            return
 
-@click.group(invoke_without_command=True, cls=DetailedGroup)
+        def command_tree(items, prefix: str = ""):
+            rows = {prefix: []}
+            for c_name, command in items:
+                if isinstance(command, click.Group):
+                    rows = rows | command_tree(
+                        command.commands.items(),
+                        f"{prefix} {c_name}".strip(),
+                    )
+                if isinstance(command, click.Command) and not command.hidden:
+                    # Single instance
+                    rows[prefix].append((f"{c_name}".strip(), command))
+            return rows
+
+        groups = command_tree(ctx.command.commands.items())
+        if len(groups):
+            limit = 120
+
+            formatter.write_paragraph()
+
+            for group, commands in groups.items():
+                if len(group):
+                    formatter.write_heading(group)
+                    formatter.indent()
+
+                rows = []
+                for subcommand, cmd in commands:
+                    help = cmd.get_short_help_str(limit)
+                    rows.append((subcommand, help))
+                rows.sort()
+                formatter.write_dl(rows)
+                formatter.write_paragraph()
+                if len(group):
+                    formatter.dedent()
+
+
+@click.group(
+    invoke_without_command=True,
+    cls=DetailedGroup,
+    help="Utility commands related to running a Minecraft server.",
+)
 @click.option("--debug/--no-debug", default=False)
 @click.option(
     "-C",
@@ -70,7 +118,7 @@ def cli(ctx: click.Context, debug, config):
 
 @cli.group(invoke_without_command=True, cls=DetailedGroup)
 @click.pass_context
-def server(ctx):
+def server(ctx: click.Context):
     """See commands relating to the server"""
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
@@ -375,3 +423,56 @@ def config(
     else:
         cfg = Config.load(config_file, False)
         click.echo(cfg.flatten())
+
+
+@cli.command(
+    name="readme",
+    help="Update the readme with the config & commands",
+)
+@click.argument(
+    "readme",
+    type=click.Path(
+        exists=True,
+        dir_okay=False,
+        writable=True,
+        readable=True,
+        resolve_path=True,
+        path_type=pathlib.Path,
+    ),
+    default="README.md",
+)
+@click.pass_context
+def write_readme_config(ctx: click.Context, readme: pathlib.Path):
+    content = Config.dumps().splitlines()
+    to_write = []
+    with open(readme) as f:
+        in_config = False
+        in_commands = False
+        for line in f:
+            if "# (config-start)" in line:
+                in_config = True
+                to_write.append(line)
+                to_write.append("```\n")
+                to_write.append("\n".join(content))
+                continue
+            elif "# (config-end)" in line:
+                in_config = False
+                to_write.append("\n```\n")
+                to_write.append(line)
+                continue
+            elif "# (command-start)" in line:
+                in_commands = True
+                to_write.append(line)
+                to_write.append("```\n")
+                to_write.append(ctx.find_root().get_help())
+                continue
+            elif "# (command-end)" in line:
+                in_commands = False
+                to_write.append("\n```\n")
+                to_write.append(line)
+                continue
+
+            if not in_config and not in_commands:
+                to_write.append(line)
+    with open(readme, "w") as f:
+        f.write("".join(to_write))

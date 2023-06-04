@@ -10,6 +10,7 @@ Clone the project, setup a virtual env and install `pip install .`
 ### Configuration
 Generate the default config file using `cmcserver --init`. It will create a `.cmcconfig.toml` file which you can then edit.
 
+[//]: # (config-start)
 ```
 # Configuration for cmcserver command
 
@@ -43,29 +44,45 @@ subfolder = "" # Path inside the bucket to store backups in.
 [backups.git]
 push = false
 ```
+[//]: # (config-end)
 
 ### Commands
 Run `cmcserver` to see the list of available commands.
 
+[//]: # (command-start)
 ```
 Usage: cmcserver [OPTIONS] COMMAND [ARGS]...
 
-  Group all of our commands together
+  Utility commands related to running a Minecraft server.
 
 Options:
   --debug / --no-debug
-  --init
-  --force
+  -C, --config PATH
   --help                Show this message and exit.
 
-Commands:
-  backup           Create a backup of the world folder into the backups...
-  backup:sync-aws  Upload and download full backup files to a configured...
-  restart          Restart the server
-  start            Boot the server
-  status           See the status of the server
-  stop             Stop the server
+backup  Backup and restore the game using both remote and local options
+config  Edit the configuration file, or generate it if it does not exist.
+mods    Run the download mods script if it is defined
+readme  Update the readme with the config & commands
+server  See commands relating to the server
+
+server:
+  restart  Restart the server
+  start    Boot the server.
+  status   See the status of the server
+  stop     Stop the server
+
+backup:
+  aws     Backup and restore the game using AWS as a remote storage option
+  create  Create either a full or incremental backup
+  git     Upload incremental changes to git
+  prune   Prune the backups in the local system
+
+backup aws:
+  prune  Delete excess backup files from a configured AWS S3 bucket
+  sync   Upload and download full backup files to a configured AWS S3 bucket
 ```
+[//]: # (command-end)
 
 ## Development
 Project uses pre-commit. Install using `pre-commit install` and then confirm the webhook passes.
