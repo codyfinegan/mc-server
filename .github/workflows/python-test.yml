@@ -7,7 +7,7 @@ on:
     branches: ['main']
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -31,7 +31,7 @@ jobs:
         flake8 . --count --show-source --statistics
     - name: Test with pytest
       run: |
-        coverage run -m pytest
+        coverage run -m pytest . && coverage xml
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
       env:

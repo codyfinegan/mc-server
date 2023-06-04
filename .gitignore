@@ -27,4 +27,5 @@ _version.py
 .idea
 run-as-cron
 .coverage
+coverage.xml
 htmlcov/
