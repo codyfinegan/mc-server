@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cmcserver"
+description = "Helper tools for managing my Minecraft server"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "click",
+    "mctools",
+    "tomlkit",
+    "boto3"
+]
+dynamic = ["version"]
+
+[project.scripts]
+cmcserver = "cmcserver.main:cli"
+
+[project.optional-dependencies]
+dev = ["flake8", "black", "isort[pyproject]", "pre-commit", "add-trailing-comma", "pytest", "coverage"]
+
+[tool.setuptools_scm]
+write_to = "src/cmcserver/_version.py"
+
+[tool.black]
+target-version = ['py311']
+line_length = 88
+extend-exclude = '_version.py'
+
+[tool.isort]
+profile = "black"
+line_length = 88
+known_first_party = ["cmcserver"]
+known_third_party = ["click", "mctools"]
+skip_gitignore = true
