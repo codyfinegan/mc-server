@@ -102,3 +102,68 @@ def test_download_mods(monkeypatch):
         output = invoke()
         assert f"Command issued: ['{str(mod_file)}']" in output
         assert "Complete" in output
+
+
+def test_generate_readme(monkeypatch):
+    runner = CliRunner()
+    with runner.isolated_filesystem() as r:
+        readme = Path(r).joinpath("readme.md")
+        default_readme = [
+            "GAP0",
+            "[//]: # (config-start)",
+            "CONFIG_HERE",
+            "[//]: # (config-end)",
+            "GAP1",
+            "[//]: # (command-start)",
+            "COMMANDS_HERE",
+            "[//]: # (command-end)",
+            "GAP2",
+        ]
+        with open(readme, "w") as f:
+            f.write("\n".join(default_readme))
+
+        with open(readme) as f:
+            content = f.read()
+        assert "GAP0" in content
+        assert "GAP1" in content
+        assert "GAP2" in content
+        assert "CONFIG_HERE" in content
+        assert "COMMANDS_HERE" in content
+
+        output = runner.invoke(cli, ["readme", str(readme)])
+        assert "Readme has been updated" in output.output
+
+        with open(readme) as f:
+            content = f.read()
+        assert "GAP0" in content
+        assert "GAP1" in content
+        assert "GAP2" in content
+        assert "CONFIG_HERE" not in content
+        assert "COMMANDS_HERE" not in content
+
+
+def test_helps():
+    runner = CliRunner()
+
+    # Base help
+    output = runner.invoke(cli, ["--help"])
+    assert "Usage: " in output.output
+    assert "Utility commands related to running a Minecraft server." in output.output
+    assert "server:" in output.output
+    assert "backup:" in output.output
+
+    output = runner.invoke(cli)
+    assert "Usage: " in output.output
+    assert "Utility commands related to running a Minecraft server." in output.output
+    assert "server:" in output.output
+    assert "backup:" in output.output
+
+    # Backup help
+    output = runner.invoke(cli, ["backup"])
+    assert "Usage: " in output.output
+    assert "aws:" in output.output
+
+    # Server help
+    output = runner.invoke(cli, ["server"])
+    assert "Usage: " in output.output
+    assert "Restart the server" in output.output

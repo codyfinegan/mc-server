@@ -39,10 +39,6 @@ class DetailedGroup(click.Group):
         ctx: click.Context,
         formatter: click.HelpFormatter,
     ) -> None:
-        if not isinstance(ctx.command, DetailedGroup):
-            super().format_commands(ctx, formatter)
-            return
-
         def command_tree(items, prefix: str = ""):
             rows = {prefix: []}
             for c_name, command in items:
@@ -56,7 +52,7 @@ class DetailedGroup(click.Group):
                     rows[prefix].append((f"{c_name}".strip(), command))
             return rows
 
-        groups = command_tree(ctx.command.commands.items())
+        groups = command_tree(ctx.command.commands.items())  # type: ignore
         if len(groups):
             limit = get_terminal_size().columns
 
@@ -476,3 +472,4 @@ def write_readme_config(ctx: click.Context, readme: pathlib.Path):
                 to_write.append(line)
     with open(readme, "w") as f:
         f.write("".join(to_write))
+    click.echo("Readme has been updated")

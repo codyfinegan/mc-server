@@ -8,7 +8,9 @@ Requires `zstd` for backup compression. Try `apt install zstd`.
 Clone the project, setup a virtual env and install `pip install .`
 
 ### Configuration
-Generate the default config file using `cmcserver --init`. It will create a `.cmcconfig.toml` file which you can then edit.
+Generate the default config file using `cmcserver config` in the regular place. Run `cmcserver config --help` to see all of the available options.
+
+Below is an example of the configuration file with their default values.
 
 [//]: # (config-start)
 ```
