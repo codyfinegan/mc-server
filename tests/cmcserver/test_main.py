@@ -149,26 +149,34 @@ def test_generate_readme(monkeypatch):
 
 def test_helps():
     runner = CliRunner()
+    with runner.isolated_filesystem() as r:
+        config_file_raw = Path(r).joinpath("cmcserver.toml")
+        config_file_raw.write_text("")
+        config_file = str(config_file_raw)
 
-    # Base help
-    output = runner.invoke(cli, ["--help"])
-    assert "Usage: " in output.output
-    assert "Utility commands related to running a Minecraft server." in output.output
-    assert "server:" in output.output
-    assert "backup:" in output.output
+        # Base help
+        output = runner.invoke(cli, ["--help"])
+        assert "Usage: " in output.output
+        assert (
+            "Utility commands related to running a Minecraft server." in output.output
+        )
+        assert "server:" in output.output
+        assert "backup:" in output.output
 
-    output = runner.invoke(cli)
-    assert "Usage: " in output.output
-    assert "Utility commands related to running a Minecraft server." in output.output
-    assert "server:" in output.output
-    assert "backup:" in output.output
+        output = runner.invoke(cli)
+        assert "Usage: " in output.output
+        assert (
+            "Utility commands related to running a Minecraft server." in output.output
+        )
+        assert "server:" in output.output
+        assert "backup:" in output.output
 
-    # Backup help
-    output = runner.invoke(cli, ["backup"])
-    assert "Usage: " in output.output
-    assert "aws:" in output.output
+        # Backup help
+        output = runner.invoke(cli, ["--config", config_file, "backup"])
+        assert "Usage: " in output.output
+        assert "aws:" in output.output
 
-    # Server help
-    output = runner.invoke(cli, ["server"])
-    assert "Usage: " in output.output
-    assert "Restart the server" in output.output
+        # Server help
+        output = runner.invoke(cli, ["--config", config_file, "server"])
+        assert "Usage: " in output.output
+        assert "Restart the server" in output.output

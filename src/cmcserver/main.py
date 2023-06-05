@@ -97,11 +97,12 @@ def cli(ctx: click.Context, debug, config):
     if config:
         config_path = Path(config)
     elif "PYTEST_CURRENT_TEST" not in os.environ:
+        # @TODO - change the config to something that's injectible
         config_path = Path(click.get_app_dir("cmcserver.toml"))
 
     ctx.obj = ToolLoader(config_path)
 
-    if ctx.invoked_subcommand in ("config", "readme", "backup", "server"):
+    if ctx.invoked_subcommand in ("config", "readme"):
         return
 
     if ctx.invoked_subcommand is None:
