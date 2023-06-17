@@ -2,7 +2,7 @@ from pathlib import Path
 
 import click
 import tomlkit
-from tomlkit.items import String, Table
+from tomlkit.items import Integer, String, Table
 
 
 def default_config() -> dict:
@@ -30,6 +30,7 @@ def default_config() -> dict:
         "startup_script": "/path/to/startup_script.sh",
         "game_folder": "/path/to/game",
         "mod_script": "/path/to/mod_downloads.sh",
+        "screen_logs_name": "screen_log.log",
         "world": "world",
         "boot_pause": 25,
     }
@@ -52,6 +53,10 @@ def default_config_toml() -> tomlkit.TOMLDocument:
     doc.add("world", cfg["world"])
     doc["world"].comment(  # type: ignore
         "Name of the minecraft game folder",
+    )
+    doc.add("screen_logs", cfg["screen_logs"])
+    doc["screen_logs"].comment(  # type: ignore
+        "Full path to folder where screen logs will be written to. Must be writable. Defaults to /tmp",
     )
     doc.add("boot_pause", cfg["boot_pause"])
     doc["boot_pause"].comment(  # type: ignore
@@ -136,6 +141,14 @@ class Config:
         if key in self.data:
             return self.data[key]
         return None
+
+    def get_int(self, key) -> int:
+        val = self.get(key)
+        if type(val) == int:
+            return val
+        if type(val) == Integer:
+            return int(val)
+        raise TypeError(f"{key} was not a integer (was {type(val)})")
 
     def get_str(self, key) -> str:
         val = self.get(key)
