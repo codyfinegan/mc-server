@@ -97,11 +97,12 @@ def cli(ctx: click.Context, debug, config):
     if config:
         config_path = Path(config)
     elif "PYTEST_CURRENT_TEST" not in os.environ:
+        # @TODO - change the config to something that's injectible
         config_path = Path(click.get_app_dir("cmcserver.toml"))
 
     ctx.obj = ToolLoader(config_path)
 
-    if ctx.invoked_subcommand in ("config", "readme", "backup", "server"):
+    if ctx.invoked_subcommand in ("config", "readme"):
         return
 
     if ctx.invoked_subcommand is None:
@@ -142,11 +143,10 @@ def status(loader: ToolLoader):
     type=click.IntRange(0, 600),
     help="How many seconds until shutdown?",
 )
-@click.argument("reason", type=str, default=None, required=False)
 @pass_loader
-def stop(loader: ToolLoader, time: int, reason: str):
+def stop(loader: ToolLoader, time: int):
     """Stop the server"""
-    loader.server.stop(reason, time)
+    loader.server.stop(time)
 
 
 @server.command(name="start")
@@ -154,6 +154,13 @@ def stop(loader: ToolLoader, time: int, reason: str):
 def start(loader: ToolLoader):
     """Boot the server."""
     loader.server.start()
+
+
+@server.command(name="ping")
+@pass_loader
+def ping(loader: ToolLoader):
+    """Ping the server"""
+    loader.server._ping_server()
 
 
 @server.command(name="restart")
@@ -168,7 +175,9 @@ def start(loader: ToolLoader):
 @pass_loader
 def restart(loader: ToolLoader, time: int, reason: str):
     """Restart the server"""
-    loader.server.stop(reason, time, "restarting")
+    if reason:
+        loader.server.tell_all(f"Server will be restarting shortly for {reason}")
+    loader.server.stop(time, "restarting")
     loader.server.start()
 
 
@@ -319,7 +328,7 @@ def prune_local(loader: ToolLoader, count: int):
 ### MISC COMMANDS
 
 
-@cli.command("mods")
+@server.command("mods")
 @pass_loader
 def download_mods(loader: ToolLoader):
     """Run the download mods script if it is defined"""
@@ -346,7 +355,6 @@ def download_mods(loader: ToolLoader):
         command,
         cwd=str(script.parent),
         stderr=STDOUT,
-        stdout=STDOUT,
     )
     click.echo("Complete")
 
