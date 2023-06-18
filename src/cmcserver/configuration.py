@@ -2,7 +2,7 @@ from pathlib import Path
 
 import click
 import tomlkit
-from tomlkit.items import Integer, String, Table
+from tomlkit.items import Integer, Item, String, Table
 
 
 def default_config() -> dict:
@@ -167,20 +167,27 @@ class Config:
 
         raise TypeError(f"{key} was not a dict (was {type(val)})")
 
-    def tree(self, *keys) -> str | dict | None:
+    def tree(self, *keys) -> str | dict | Table | Item | None:
         val = self.data
         for key in keys:
-            if type(val) == dict and key in val:
+            if (type(val) == Table) and key in val:
+                val = val[key]
+            elif (type(val) == dict) and key in val:
                 val = val[key]
             else:
                 val = None
+
+        if type(val) == String:
+            return str(val)
         return val
 
-    def tree_str(self, *keys) -> str:
-        val = self.tree(keys)
+    def tree_str(self, *keys):
+        val = self.tree(*keys)
         if type(val) == str:
             return val
-        raise TypeError(f"{'.'.join(keys)} was not a string")
+        if type(val) == String:
+            return str(val)
+        raise TypeError(f"{'.'.join(keys)} was not a string (was {type(val)})")
 
     @classmethod
     def load(cls, config_file: Path, debug: bool):
