@@ -128,7 +128,7 @@ class ServerManager:
             ping_q.ping()
             return True
         except IndexError as e:
-            # Happens when we ping too soon
+            # Happens when we ping too soon or are blocked
             click.echo(f"Ping index error: {e}")
             return False
         except ConnectionError:
@@ -267,7 +267,6 @@ class ServerManager:
     def tell_all(
         self,
         message: Union[str, List],
-        formatted: bool = False,
         color: str = "gray",
         italic: bool = False,
         play_sound: bool = True,
@@ -278,27 +277,30 @@ class ServerManager:
             click.echo(f"Server not running, did not send: {message}")
             return
 
-        if not formatted:
-            click.echo(message)
-            message_obj = [
+        message_list = []
+        if type(message) == List:
+            message_list = message
+        else:
+            message_list.append(
                 {
                     "text": message,
                     "color": color,
                     "italic": italic,
                 },
-            ]
+            )
 
-            if prefixed:
-                message_obj = text_prefix() + message_obj
+        if prefixed:
+            message_list = text_prefix() + message_list
 
-        if type(message) == List:
-            message = json.dumps(message)
+        msgs = [msg["text"] for msg in message_list]
+        click.echo(f'Broadcasted: {"".join(msgs)}')
 
         commands = [
-            f"/tellraw @a {message}",
+            "/tellraw @a %s"
+            % json.dumps(obj=message_list, indent=None, separators=(",", ":")),
         ]
         if play_sound:
-            commands.insert(0, f"playsound minecraft:{sound} voice @a")
+            commands.insert(0, f"/playsound minecraft:{sound} voice @a")
 
         debug_echo(self.config.debug, "\n".join(commands))
         self.rcon_send(commands)

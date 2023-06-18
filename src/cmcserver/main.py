@@ -181,6 +181,13 @@ def restart(loader: ToolLoader, time: int, reason: str):
     loader.server.start()
 
 
+@server.command(name="say")
+@click.argument("message", type=str, required=True)
+@pass_loader
+def say(loader: ToolLoader, message: str):
+    loader.server.tell_all(message)
+
+
 ### BACKUP COMMANDS
 @cli.group(invoke_without_command=True, cls=DetailedGroup)
 @click.pass_context

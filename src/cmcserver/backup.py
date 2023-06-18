@@ -134,11 +134,11 @@ class BackupManager:
             click.echo("Cannot AWS ship incremental")
             return self
 
-        bucket = self.server.config.tree_str("backups", "aws_bucket")
+        bucket = self.server.config.tree_str("backups", "aws", "bucket")
         if not bucket or len(bucket) == 0:
             click.echo("No backups.aws_bucket is defined in config.")
             return
-        subfolder = self.server.config.tree_str("backups", "aws_subfolder")
+        subfolder = self.server.config.tree_str("backups", "aws", "subfolder")
         if len(subfolder):
             subfolder = f"{subfolder}/"
 
