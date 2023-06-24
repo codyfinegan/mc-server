@@ -283,7 +283,7 @@ class ServerManager:
             % json.dumps(obj=message_list, indent=None, separators=(",", ":")),
         ]
         if play_sound:
-            commands.insert(0, f"/playsound minecraft:{sound} voice @a")
+            commands.insert(0, f"/playsound minecraft:{sound} voice @a 0 0 0 1 1 1")
 
         debug_echo(self.config.debug, "\n".join(commands))
         self.rcon_send(commands)
