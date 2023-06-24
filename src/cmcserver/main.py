@@ -152,7 +152,7 @@ def stop(loader: ToolLoader, time: int):
 @server.command(name="start")
 @pass_loader
 def start(loader: ToolLoader):
-    """Boot the server."""
+    """Boot the server"""
     loader.server.start()
 
 
@@ -186,6 +186,7 @@ def restart(loader: ToolLoader, time: int, reason: str):
 @click.argument("message", type=str, required=True)
 @pass_loader
 def say(loader: ToolLoader, message: str):
+    """Send a message to everyone currently logged into the world"""
     loader.server.tell_all(message)
 
 
@@ -399,7 +400,7 @@ def config(
     raw: bool,
     config,
 ):
-    """Edit the configuration file, or generate it if it does not exist."""
+    """Edit the configuration file, or generate it if it does not exist"""
 
     config_file = Path(config or loader.config_path)
     config_file_str = click.format_filename(config_file)

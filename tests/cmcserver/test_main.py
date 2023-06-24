@@ -76,7 +76,10 @@ def test_download_mods(monkeypatch):
             monkeypatch.setattr(Config, "load", lambda x, y: config)
 
         def invoke(debug=False):
-            output = runner.invoke(cli, ["--config", str(config_file), "mods"])
+            output = runner.invoke(
+                cli,
+                ["--config", str(config_file), "server", "mods"],
+            )
             return output.output
 
         # Assert validation on failure

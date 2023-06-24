@@ -19,6 +19,7 @@ Below is an example of the configuration file with their default values.
 startup_script = "/path/to/startup_script.sh" # Full path to the startup script.
 game_folder = "/path/to/game" # The path to the minecraft base folder that holds the world_name
 world = "world" # Name of the minecraft game folder
+screen_logs_name = "screen_log.log" # Full path to folder where screen logs will be written to. Must be writable. Defaults to /tmp
 boot_pause = 25 # How long to wait for the server to start before continuing. Increase this if needed.
 mod_script = "/path/to/mod_downloads.sh" # Full path to the script used to download mods.
 
@@ -63,14 +64,16 @@ Options:
   --help                Show this message and exit.
 
 backup  Backup and restore the game using both remote and local options
-config  Edit the configuration file, or generate it if it does not exist.
-mods    Run the download mods script if it is defined
+config  Edit the configuration file, or generate it if it does not exist
 readme  Update the readme with the config & commands
 server  See commands relating to the server
 
 server:
+  mods     Run the download mods script if it is defined
+  ping     Ping the server
   restart  Restart the server
-  start    Boot the server.
+  say      Send a message to everyone currently logged into the world
+  start    Boot the server
   status   See the status of the server
   stop     Stop the server
 
