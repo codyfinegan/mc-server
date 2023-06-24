@@ -54,8 +54,8 @@ def default_config_toml() -> tomlkit.TOMLDocument:
     doc["world"].comment(  # type: ignore
         "Name of the minecraft game folder",
     )
-    doc.add("screen_logs", cfg["screen_logs"])
-    doc["screen_logs"].comment(  # type: ignore
+    doc.add("screen_logs_name", cfg["screen_logs_name"])
+    doc["screen_logs_name"].comment(  # type: ignore
         "Full path to folder where screen logs will be written to. Must be writable. Defaults to /tmp",
     )
     doc.add("boot_pause", cfg["boot_pause"])
