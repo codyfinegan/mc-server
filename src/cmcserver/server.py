@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List, Optional, Union
 
 import click
-from mctools import PINGClient, RCONClient
+from mctools import RCONClient
 
 from .configuration import Config
 
@@ -90,12 +90,14 @@ class ServerManager:
         port = self.config.data["server"]["rcon_port"]
         password = self.config.data["server"]["rcon_password"]
 
+        debug_echo(self.config.debug, f"Connecting to RCON {host}:{port}")
+
         self.client = RCONClient(host, port, format_method=RCONClient.REMOVE)
         if not self.client.login(password):
-            debug_echo(self.config.debug, "Login refused")
+            debug_echo(self.config.debug, "Connection refused")
             raise ConnectionRefusedError
 
-        debug_echo(self.config.debug, "Login complete")
+        debug_echo(self.config.debug, "Connection complete")
         return self.client
 
     def _raw_send(self, commands: List[str]):
@@ -108,34 +110,15 @@ class ServerManager:
 
         return r
 
-    def _ping_server(self, ping: bool = True):
+    def _ping_server(self, command: Optional[str] = None) -> Union[str, bool]:
         try:
-            debug_echo(self.config.debug, "Attempting to ping the server...")
-            host = self.config.data["server"]["host"]
-            port = self.config.data["server"]["query_port"]
+            rcon = self._get_client()
+            if command:
+                return str(rcon.command(command, return_packet=False))
 
-            click.echo(f"Pinging {host}:{port}...")
-            ping_q = PINGClient(
-                host=host,
-                port=port,
-                format_method=PINGClient.REMOVE,
-                timeout=3,
-            )
-
-            if not ping:
-                return ping_q.get_stats()
-
-            ping_q.ping()
             return True
-        except IndexError as e:
-            # Happens when we ping too soon or are blocked
-            click.echo(f"Ping index error: {e}")
-            return False
-        except ConnectionError:
-            click.echo("Ping connection error")
-            return False
-        except TimeoutError:
-            click.echo("Ping timeout")
+        except ConnectionRefusedError:
+            click.echo("RCON connect timeout")
             return False
 
     def rcon_send(self, commands: List[str]):

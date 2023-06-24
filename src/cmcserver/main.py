@@ -160,7 +160,8 @@ def start(loader: ToolLoader):
 @pass_loader
 def ping(loader: ToolLoader):
     """Ping the server"""
-    loader.server._ping_server()
+    list = loader.server._ping_server("/list")
+    click.echo(list)
 
 
 @server.command(name="restart")
