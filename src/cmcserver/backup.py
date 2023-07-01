@@ -35,6 +35,16 @@ class BackupManager:
         if not self.backup_source.exists():
             click.echo(f"Game folder does not exist: {self.backup_source}")
 
+    def _s3(self):
+        endpoint_url = None
+        aws_service = self.cfg.tree_str("backups", "aws", "service")
+        if aws_service:
+            endpoint_url = aws_service
+
+        client = boto3.client("s3", endpoint_url=endpoint_url)
+
+        return client
+
     def sync_world_folder(self):
         """Copy the game world contents across to the backup folder."""
         self.server.save_off()
@@ -153,7 +163,7 @@ class BackupManager:
 
         paths = set(sorted(paths))
 
-        s3 = boto3.client("s3")
+        s3 = self._s3()
         contents = set()
         try:
             objects = s3.list_objects_v2(
@@ -203,7 +213,7 @@ class BackupManager:
                 f"Not downloading - {len(to_download)} potentially (max {limit})",
             )
 
-    def prune_local(self, count: int):
+    def prune_local(self, count: int, yes: bool):
         # Load the list of files
         path = Path(self.backup_dest)
         paths = list()
@@ -212,25 +222,55 @@ class BackupManager:
                 continue
             paths.append(str(file).replace(f"{str(path)}/", ""))
 
-        paths = sorted(paths)[0:-count]
-        for file_path in paths:
-            path.joinpath(file_path).unlink()
-            click.echo(f"Deleting {file_path}")
+        contents = sorted(paths)
+        remove = contents[: -count or None]
+        keep = contents[-count:]
 
-    def prune_aws(self, count: int):
+        click.echo(
+            self._print_files(keep, "We are going to keep the following files:", 8),
+        )
+        click.echo()
+
+        if remove:
+            click.echo(
+                self._print_files(
+                    remove,
+                    "We are going to delete the following files:",
+                    100,
+                ),
+            )
+            click.echo()
+
+            if not yes and not click.confirm("Confirm?"):
+                click.echo("Delete rejected.")
+                return self
+
+            for file_path in remove:
+                path.joinpath(file_path).unlink()
+                click.echo(f"Deleting {file_path}")
+            click.echo()
+            click.echo("Complete")
+        else:
+            click.echo("Nothing to delete")
+
+    def prune_aws(self, count: int, yes: bool):
         if self.incremental:
             click.echo("Cannot prune in incremental mode")
             return self
 
-        bucket = self.server.config.tree_str("backups", "aws_bucket")
+        if count <= 0:
+            click.echo("Count must be 1 or more")
+            return self
+
+        bucket = self.server.config.tree_str("backups", "aws", "bucket")
         if not bucket or len(bucket) == 0:
             click.echo("No backups.aws_bucket is defined in config.")
             return
-        subfolder = self.server.config.tree_str("backups", "aws_subfolder")
+        subfolder = self.server.config.tree_str("backups", "aws", "subfolder")
         if len(subfolder):
             subfolder = f"{subfolder}/"
 
-        s3 = boto3.client("s3")  # type: ignore
+        s3 = self._s3()
         contents = list()
         try:
             objects = s3.list_objects_v2(
@@ -239,8 +279,47 @@ class BackupManager:
                 EncodingType="url",
             )["Contents"]
             if len(objects) > 0:
-                contents = list([obj["Key"].replace(subfolder, "") for obj in objects])
+                for obj in objects:
+                    val = obj["Key"].replace(subfolder, "")
+                    if val:
+                        contents.append(val)
         except KeyError:
             pass
 
-        print(contents)
+        remove = contents[: -count or None]
+        keep = contents[-count:]
+        click.echo(
+            self._print_files(keep, "We are going to keep the following files:", 8),
+        )
+        click.echo()
+
+        if remove:
+            click.echo(
+                self._print_files(
+                    remove,
+                    "We are going to delete the following files:",
+                    100,
+                ),
+            )
+            click.echo()
+
+            if not yes and not click.confirm("Confirm?"):
+                click.echo("Delete rejected.")
+                return self
+
+            for file in remove:
+                s3.delete_object(
+                    Bucket=bucket,
+                    Key=f"{subfolder}{file}",
+                )
+                click.echo(f"Deleted {subfolder}{file}")
+            click.echo()
+            click.echo("Complete")
+        else:
+            click.echo("Nothing to delete")
+
+        return self
+
+    @staticmethod
+    def _print_files(files: list, message: str, max: int = 8) -> str:
+        return message + "\n + %s" % "\n + ".join(files[:max])

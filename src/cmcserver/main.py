@@ -257,7 +257,7 @@ def base_backup(loader: ToolLoader, incremental: bool, sync: bool):
 @backup.group(invoke_without_command=True, cls=DetailedGroup)
 @click.pass_context
 def aws(ctx):
-    """Backup and restore the game using AWS as a remote storage option"""
+    """Manage backups stored in a AWS bucket"""
     if ctx.invoked_subcommand is None:
         click.echo(ctx.get_help())
         ctx.exit()
@@ -292,20 +292,26 @@ def sync_backup_aws(loader: ToolLoader, download: bool, upload: bool, limit: int
 
 @aws.command("prune")
 @click.option(
-    "--count",
+    "--keep",
     default=10,
     type=click.IntRange(0, 20),
     help="Number of backups to keep in AWS",
 )
+@click.option(
+    "--yes",
+    is_flag=True,
+    default=False,
+    help="Automatically respond to yes when deleting a file",
+)
 @pass_loader
-def prune_aws(loader: ToolLoader, count: int):
+def prune_aws(loader: ToolLoader, keep: int, yes: bool):
     """Delete excess backup files from a configured AWS S3 bucket"""
     backup_manager = BackupManager(server=loader.server, incremental=False)
-    backup_manager.prune_aws(count)
+    backup_manager.prune_aws(keep, yes)
 
 
 ### OTHER BACKUPS
-@backup.command(name="git")
+@backup.command(name="git", hidden=True)
 @click.option(
     "--push",
     is_flag=True,
@@ -321,16 +327,22 @@ def sync_backup_git(loader: ToolLoader, push: bool):
 
 @backup.command("prune")
 @click.option(
-    "--count",
+    "--keep",
     default=10,
     type=click.IntRange(0, 20),
     help="Number of backups to keep locally",
 )
+@click.option(
+    "--yes",
+    is_flag=True,
+    default=False,
+    help="Automatically respond to yes when deleting a file",
+)
 @pass_loader
-def prune_local(loader: ToolLoader, count: int):
+def prune_local(loader: ToolLoader, keep: int, yes: bool):
     """Prune the backups in the local system"""
     backup_manager = BackupManager(server=loader.server, incremental=False)
-    backup_manager.prune_local(count)
+    backup_manager.prune_local(keep, yes)
     click.echo("Prune complete")
 
 
