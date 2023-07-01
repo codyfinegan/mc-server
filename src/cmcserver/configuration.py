@@ -22,6 +22,7 @@ def default_config() -> dict:
             "aws": {
                 "bucket": "",
                 "subfolder": "",
+                "service": "",
             },
             "git": {
                 "push": False,
@@ -104,11 +105,15 @@ def default_config_toml() -> tomlkit.TOMLDocument:
     aws = tomlkit.table()
     aws.add("bucket", cfg["backups"]["aws"]["bucket"])
     aws.add("subfolder", cfg["backups"]["aws"]["subfolder"])
+    aws.add("service", cfg["backups"]["aws"]["service"])
     aws["bucket"].comment(
         "Bucket to store full backups in.",
     )
     aws["subfolder"].comment(
         "Path inside the bucket to store backups in.",
+    )
+    aws["service"].comment(
+        "URL to the AWS service to use. Leave blank normally, this is used for testing.",
     )
     table.add("aws", aws)
 
@@ -187,6 +192,8 @@ class Config:
             return val
         if type(val) == String:
             return str(val)
+        if not val:
+            return ""
         raise TypeError(f"{'.'.join(keys)} was not a string (was {type(val)})")
 
     @classmethod
