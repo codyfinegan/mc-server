@@ -191,6 +191,12 @@ class ServerManager:
         sleep: int,
         screen_logs_name: str,
     ):
+        if "{date}" in screen_logs_name:
+            screen_logs_name = screen_logs_name.replace(
+                "{date}",
+                time.strftime("%Y%m%d"),
+            )
+
         command = [
             "screen",
             "-dmS",

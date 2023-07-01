@@ -43,6 +43,7 @@ name = "%s.tar.zst" # Syntax of the backup filename. If compression changes, cha
 [backups.aws]
 bucket = "" # Bucket to store full backups in.
 subfolder = "" # Path inside the bucket to store backups in.
+service = "" # URL to the AWS service to use. Leave blank normally, this is used for testing.
 
 [backups.git]
 push = false
@@ -78,9 +79,8 @@ server:
   stop     Stop the server
 
 backup:
-  aws     Backup and restore the game using AWS as a remote storage option
+  aws     Manage backups stored in a AWS bucket
   create  Create either a full or incremental backup
-  git     Upload incremental changes to git
   prune   Prune the backups in the local system
 
 backup aws:
