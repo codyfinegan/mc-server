@@ -83,7 +83,7 @@ class ServerManager:
         self.client = None
 
     def _get_client(self):
-        if type(self.client) == RCONClient and self.client.is_authenticated:
+        if isinstance(self.client, RCONClient) and self.client.is_authenticated:
             return self.client
 
         host = self.config.data["server"]["host"]
@@ -122,7 +122,7 @@ class ServerManager:
             return False
 
     def rcon_send(self, commands: List[str]):
-        if type(commands) == str:
+        if commands is str:
             commands = [commands]
         try:
             debug_echo(self.debug, "Starting to login...")
@@ -267,7 +267,7 @@ class ServerManager:
             return
 
         message_list = []
-        if type(message) == List:
+        if message is List:
             message_list = message
         else:
             message_list.append(

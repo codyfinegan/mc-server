@@ -149,25 +149,25 @@ class Config:
 
     def get_int(self, key) -> int:
         val = self.get(key)
-        if type(val) == int:
+        if val is int:
             return val
-        if type(val) == Integer:
+        if isinstance(val, Integer):
             return int(val)
         raise TypeError(f"{key} was not a integer (was {type(val)})")
 
     def get_str(self, key) -> str:
         val = self.get(key)
-        if type(val) == str:
+        if val is str:
             return val
-        if type(val) == String:
+        if isinstance(val, String):
             return str(val)
         raise TypeError(f"{key} was not a string (was {type(val)})")
 
     def get_dict(self, key) -> dict:
         val = self.get(key)
-        if type(val) == dict:
+        if val is dict:
             return val
-        if type(val) == Table:
+        if isinstance(val, Table):
             return dict(val)
 
         raise TypeError(f"{key} was not a dict (was {type(val)})")
@@ -175,22 +175,22 @@ class Config:
     def tree(self, *keys) -> str | dict | Table | Item | None:
         val = self.data
         for key in keys:
-            if (type(val) == Table) and key in val:
+            if isinstance(val, Table) and key in val:
                 val = val[key]
-            elif (type(val) == dict) and key in val:
+            elif val is dict and key in val:
                 val = val[key]
             else:
                 val = None
 
-        if type(val) == String:
+        if isinstance(val, String):
             return str(val)
         return val
 
     def tree_str(self, *keys):
         val = self.tree(*keys)
-        if type(val) == str:
+        if val is str:
             return val
-        if type(val) == String:
+        if isinstance(val, String):
             return str(val)
         if not val:
             return ""
@@ -240,11 +240,11 @@ class Config:
         def process(collection, prefix=""):
             data = []
             for key, settings in collection:
-                if type(settings) == dict or type(settings) == Table:
+                if settings is dict or isinstance(settings, Table):
                     data = data + process(settings.items(), prefix=f"{prefix}{key}.")
-                elif type(settings) == bool:
+                elif settings is bool:
                     data.append((f"{prefix}{key}:", "True" if settings else "False"))
-                elif not settings and type(settings) != int:
+                elif not settings and settings is not int:
                     data.append((f"{prefix}{key}:", "None"))
                 elif "password" in key:
                     data.append((f"{prefix}{key}:", "*****"))

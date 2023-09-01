@@ -6,15 +6,14 @@ repos:
         args: [--markdown-linebreak-ext=md]
       - id: check-executables-have-shebangs
       - id: detect-private-key
-      - id: no-commit-to-branch
 
   - repo: https://github.com/asottile/add-trailing-comma
-    rev: v2.5.1
+    rev: v3.1.0
     hooks:
       - id: add-trailing-comma
 
   - repo: https://github.com/psf/black
-    rev: 23.3.0
+    rev: 23.7.0
     hooks:
       - id: black
         language_version: python3.11
@@ -28,6 +27,6 @@ repos:
         args: [--settings-path, pyproject.toml]
 
   - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
+    rev: 6.1.0
     hooks:
       - id: flake8
