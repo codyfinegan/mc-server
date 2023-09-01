@@ -43,7 +43,7 @@ def seconds_to_countdown(seconds: int, range: Optional[List[int]] = None) -> lis
         if seconds >= step:
             t_range.append(step)
 
-    upper = max(t_range)
+    upper: int = max(t_range)
     if seconds > upper:
         t_range.insert(0, seconds)
 
@@ -369,7 +369,7 @@ class ServerManager:
         )
 
         # Now wait
-        time.sleep(5)
+        time.sleep(1)
         down = False
         if self.screen_exists():
             for i in range(1, 100):
@@ -377,6 +377,8 @@ class ServerManager:
                     down = True
                     break
                 time.sleep(2)
+        else:
+            down = True
 
         if down:
             click.echo("Server has stopped")
