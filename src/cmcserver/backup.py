@@ -179,8 +179,6 @@ class BackupManager:
         combined = paths.union(contents)
         valid_files = set(sorted(combined, reverse=True)[0:limit])
 
-        print(type(contents), type(valid_files), type(valid_files - contents))
-
         to_upload: set
         to_upload = valid_files - contents
         to_upload_str = ", ".join(to_upload) if to_upload else "None"
