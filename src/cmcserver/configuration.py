@@ -165,7 +165,7 @@ class Config:
 
     def get_dict(self, key) -> dict:
         val = self.get(key)
-        if val is dict:
+        if isinstance(val, dict):
             return val
         if isinstance(val, Table):
             return dict(val)
@@ -177,7 +177,7 @@ class Config:
         for key in keys:
             if isinstance(val, Table) and key in val:
                 val = val[key]
-            elif val is dict and key in val:
+            elif isinstance(val, dict) and key in val:
                 val = val[key]
             else:
                 val = None

@@ -146,7 +146,7 @@ class BackupManager:
 
         bucket = self.server.config.tree_str("backups", "aws", "bucket")
         if not bucket or len(bucket) == 0:
-            click.echo("No backups.aws_bucket is defined in config.")
+            click.echo("No backups.aws.bucket is defined in config.")
             return
         subfolder = self.server.config.tree_str("backups", "aws", "subfolder")
         if len(subfolder):
@@ -264,7 +264,7 @@ class BackupManager:
 
         bucket = self.server.config.tree_str("backups", "aws", "bucket")
         if not bucket or len(bucket) == 0:
-            click.echo("No backups.aws_bucket is defined in config.")
+            click.echo("No backups.aws.bucket is defined in config.")
             return
         subfolder = self.server.config.tree_str("backups", "aws", "subfolder")
         if len(subfolder):
