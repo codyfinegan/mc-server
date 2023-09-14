@@ -149,7 +149,7 @@ class Config:
 
     def get_int(self, key) -> int:
         val = self.get(key)
-        if val is int:
+        if isinstance(val, int):
             return val
         if isinstance(val, Integer):
             return int(val)
@@ -157,7 +157,7 @@ class Config:
 
     def get_str(self, key) -> str:
         val = self.get(key)
-        if val is str:
+        if isinstance(val, str):
             return val
         if isinstance(val, String):
             return str(val)
@@ -188,7 +188,7 @@ class Config:
 
     def tree_str(self, *keys):
         val = self.tree(*keys)
-        if val is str:
+        if isinstance(val, str):
             return val
         if isinstance(val, String):
             return str(val)
@@ -240,11 +240,11 @@ class Config:
         def process(collection, prefix=""):
             data = []
             for key, settings in collection:
-                if settings is dict or isinstance(settings, Table):
+                if isinstance(settings, dict) or isinstance(settings, Table):
                     data = data + process(settings.items(), prefix=f"{prefix}{key}.")
-                elif settings is bool:
+                elif isinstance(settings, bool):
                     data.append((f"{prefix}{key}:", "True" if settings else "False"))
-                elif not settings and settings is not int:
+                elif not settings and not isinstance(settings, int):
                     data.append((f"{prefix}{key}:", "None"))
                 elif "password" in key:
                     data.append((f"{prefix}{key}:", "*****"))

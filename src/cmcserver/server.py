@@ -122,7 +122,7 @@ class ServerManager:
             return False
 
     def rcon_send(self, commands: List[str]):
-        if commands is str:
+        if isinstance(commands, str):
             commands = [commands]
         try:
             debug_echo(self.debug, "Starting to login...")
@@ -267,7 +267,7 @@ class ServerManager:
             return
 
         message_list = []
-        if message is List:
+        if isinstance(message, List):
             message_list = message
         else:
             message_list.append(

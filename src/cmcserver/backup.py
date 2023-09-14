@@ -179,11 +179,15 @@ class BackupManager:
         combined = paths.union(contents)
         valid_files = set(sorted(combined, reverse=True)[0:limit])
 
+        print(type(contents), type(valid_files), type(valid_files - contents))
+
+        to_upload: set
         to_upload = valid_files - contents
         to_upload_str = ", ".join(to_upload) if to_upload else "None"
 
         click.echo(f"Missing from S3 (prefix {subfolder}): {to_upload_str}")
 
+        to_download: set
         to_download = valid_files - paths
         to_download_str = ", ".join(to_download) if to_download else "None"
 
@@ -222,6 +226,7 @@ class BackupManager:
                 continue
             paths.append(str(file).replace(f"{str(path)}/", ""))
 
+        contents: list
         contents = sorted(paths)
         remove = contents[: -count or None]
         keep = contents[-count:]
