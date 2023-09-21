@@ -1,0 +1,12 @@
+# Handle server restarts
+@reboot . $HOME/.cmc; $CMC server start >> /var/log/minecraft/start.log 2>&1
+
+# Backup the server
+55 19 * * * . $HOME/.cmc; $CMC backup create --sync >> /var/log/minecraft/backup.log 2>&1
+
+# Restart the server
+45 19 * * * . $HOME/.cmc; $CMC server restart -t 1800 >> /var/log/minecraft/daily_restart.log 2>&1
+
+# Prune the backups (local & remote)
+45 20 * * * . $HOME/.cmc; $CMC backup aws prune --keep=5 --yes >> /var/log/minecraft/prune_logs.log 2>&1
+35 20 * * * . $HOME/.cmc; $CMC backup prune --keep=5 --yes >> /var/log/minecraft/prune_logs.log 2>&1

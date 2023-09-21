@@ -1,0 +1,3 @@
+#!/bin/bash
+
+export CMC="$HOME/.pyenv/versions/cmc/bin/cmcserver"
