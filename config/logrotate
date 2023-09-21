@@ -1,0 +1,22 @@
+/var/log/minecraft/start.log
+/var/log/minecraft/backup.log
+/var/log/minecraft/daily_restart.log
+/var/log/minecraft/prune_logs.log
+{
+  rotate 14
+  daily
+  compress
+  missingok
+  notifempty
+  create 660 minecraft minecraft
+}
+
+/var/log/minecraft/screen.log
+{
+  rotate 52
+  weekly
+  compress
+  missingok
+  notifempty
+  create 660 minecraft minecraft
+}
