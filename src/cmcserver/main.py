@@ -140,7 +140,7 @@ def status(loader: ToolLoader):
     "-t",
     "--time",
     default=5,
-    type=click.IntRange(0, 600),
+    type=click.IntRange(0, 3600),
     help="How many seconds until shutdown?",
 )
 @pass_loader
@@ -169,7 +169,7 @@ def ping(loader: ToolLoader):
     "-t",
     "--time",
     default=60,
-    type=click.IntRange(0, 600),
+    type=click.IntRange(0, 3600),
     help="How many seconds until restart?",
 )
 @click.argument("reason", type=str, default=None, required=False)
