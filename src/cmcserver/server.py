@@ -168,7 +168,7 @@ class ServerManager:
         """
         count = 0
 
-        with open(logfile) as f:
+        with open(logfile, "r") as f:
             f.seek(0, SEEK_END)
 
             while True:
@@ -224,9 +224,16 @@ class ServerManager:
 
         # We're going to tail the output for a bit
         log = startup_script.parent.joinpath(screen_logs_name)
+        click.echo(f"Run tail -f {str(log)} to see what's happening")
+
+        # Wait for the file to exist
+        i = 0
+        while not log.exists() and i < 100:
+            time.sleep(0.2)
+
         if log.exists():
             end = time.time() + sleep
-            click.echo(f"Run tail -f {str(log)} to see what's happening")
+
             click.echo("Printing out the logs for a bit...")
             click.echo("=======")
 
@@ -240,9 +247,7 @@ class ServerManager:
                     break
 
             click.echo("=======")
-
         else:
-            click.echo(f"Run tail -f {str(log)} to see what's happening")
             time.sleep(sleep)
 
         # Check, is our screen running?
@@ -259,7 +264,7 @@ class ServerManager:
         color: str = "gray",
         italic: bool = False,
         play_sound: bool = True,
-        sound: str = "ui.button.click",
+        sound: str = "block.amethyst_block.resonate",
         prefixed: bool = True,
     ):
         if not self.screen_exists():
@@ -289,7 +294,7 @@ class ServerManager:
             % json.dumps(obj=message_list, indent=None, separators=(",", ":")),
         ]
         if play_sound:
-            commands.insert(0, f"/playsound minecraft:{sound} voice @a 0 0 0 1 1 1")
+            commands.insert(0, f"/playsound minecraft:{sound} voice @a 0 0 0 10 0.6 1")
 
         debug_echo(self.config.debug, "\n".join(commands))
         self.rcon_send(commands)
@@ -359,7 +364,7 @@ class ServerManager:
             self.tell_all(f"In {i}...")
             time.sleep(1)
 
-        self.tell_all("Off we go!", sound="block.bell.use")
+        self.tell_all("Off we go!", sound="entity.tnt.primed")
         time.sleep(1)
         self.rcon_send(
             [
