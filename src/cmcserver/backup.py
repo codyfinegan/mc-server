@@ -18,9 +18,11 @@ class BackupManager:
         # Calculate the backup folder
         self.backup_dest_base = Path(self.cfg_backups["folder"])
         self.backup_dest = self.backup_dest_base.joinpath(
-            self.cfg_backups["incremental"]
-            if incremental
-            else self.cfg_backups["full"],
+            (
+                self.cfg_backups["incremental"]
+                if incremental
+                else self.cfg_backups["full"]
+            ),
         )
 
         if not self.backup_dest.exists():
