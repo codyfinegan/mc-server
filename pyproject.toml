@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "cmcserver"
 description = "Helper tools for managing my Minecraft server"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = "==3.11.4"
 dependencies = [
     "click",
     "mctools",
