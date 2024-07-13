@@ -572,3 +572,16 @@ def select(loader: ToolLoader, preview: bool, debug: bool) -> None:
 def backup(loader: ToolLoader, debug: bool) -> None:
     """Select the chunks"""
     loader.mca_world.backup(debug)
+
+
+@mca.command()
+@click.option(
+    "--debug",
+    is_flag=True,
+    default=False,
+    help="Show the MCA command rather than executing it",
+)
+@pass_loader
+def delete(loader: ToolLoader, debug: bool) -> None:
+    """Select the chunks"""
+    loader.mca_world.delete(debug)

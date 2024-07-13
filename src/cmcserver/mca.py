@@ -50,7 +50,7 @@ class MCAManager:
         if debug:
             # click.echo(f"Command: {' '.join(command)}")
             print(command)
-            return
+            return -1
 
         return subprocess.call(
             command,
@@ -73,6 +73,25 @@ class MCAManager:
             return
 
         click.echo("Output has been written to {}".format(output))
+
+    def delete(self, debug: bool):
+        output = self._output()
+        if not output.exists():
+            raise click.UsageError(
+                "Chunks CSV file wasn't there, run the select command first.",
+            )
+
+        selection = str(output.absolute())
+        code = self._run(debug, "delete", "--selection", selection)
+        if debug:
+            return
+
+        if code > 0:
+            click.echo("There was an error processing the command")
+            return
+
+        click.echo("Chunks have been removed")
+        self._output().unlink(missing_ok=True)
 
     def backup(self, debug: bool):
         #  Output Folder
@@ -160,11 +179,12 @@ class MCAOverworld(MCAManager):
     def _query(self) -> str:
         return (
             "!(!"
-            "(xPos < -64 OR xPos > 31 OR zPos < -64 OR zPos > 31)"
-            " OR "
-            'InhabitedTime > "5 minutes"'
-            " OR "
-            'Palette contains "minecraft:lapis_block")'
+            "(xPos < -1 OR xPos > 1 OR zPos < -1 OR zPos > 1)"
+            ' OR InhabitedTime > "10 minutes"'
+            ' OR Palette contains "minecraft:redstone_wire"'
+            ' OR Palette contains "minecraft:lapis_block"'
+            ' OR Palette contains "minecraft:nether_portal"'
+            ")"
         )
 
     def _world(self) -> Path:
