@@ -7,6 +7,8 @@ import click
 
 from .backup import BackupManager
 from .configuration import Config
+from .mca import MCAManager
+from .mca import factory as mfactory
 from .server import ServerManager
 
 
@@ -16,6 +18,7 @@ class ToolLoader:
     config: Config
     server: ServerManager
     config_path: str
+    mca_world: MCAManager
 
     def __init__(self, config_path) -> None:
         self.config_path = config_path
@@ -23,6 +26,9 @@ class ToolLoader:
     def setup(self, config: Config):
         self.config = config
         self.server = ServerManager(self.config)
+
+    def init_mca(self, world: str):
+        self.mca_world = mfactory(world, self.config)
 
 
 pass_loader = click.make_pass_decorator(ToolLoader, ensure=True)
@@ -507,3 +513,62 @@ def write_readme_config(ctx: click.Context, readme: pathlib.Path):
     with open(readme, "w") as f:
         f.write("".join(to_write))
     click.echo("Readme has been updated")
+
+
+### MCA Commands
+
+
+@cli.group(invoke_without_command=True, cls=DetailedGroup)
+@click.option(
+    "-w",
+    "--world",
+    type=click.Choice(["overworld", "end"], case_sensitive=False),
+    default="overworld",
+    help="Which world to apply the pruning to",
+)
+@click.pass_context
+def mca(ctx: click.Context, world: str) -> None:
+    """Commands relating to chunk management with MCA Selector"""
+    if ctx.invoked_subcommand is None:
+        click.echo(ctx.get_help())
+        ctx.exit()
+
+    if not world:
+        raise click.UsageError("Must provide --world param")
+
+    loader: ToolLoader = ctx.obj
+    loader.init_mca(world)
+
+    click.echo(f"Working in {loader.mca_world.title()} ({loader.mca_world.folder()}")
+
+
+@mca.command()
+@click.option(
+    "--preview",
+    is_flag=True,
+    default=False,
+    help="Show the query rather than executing it",
+)
+@click.option(
+    "--debug",
+    is_flag=True,
+    default=False,
+    help="Show the MCA command rather than executing it",
+)
+@pass_loader
+def select(loader: ToolLoader, preview: bool, debug: bool) -> None:
+    """Select the chunks"""
+    loader.mca_world.select(preview, debug)
+
+
+@mca.command()
+@click.option(
+    "--debug",
+    is_flag=True,
+    default=False,
+    help="Show the MCA command rather than executing it",
+)
+@pass_loader
+def backup(loader: ToolLoader, debug: bool) -> None:
+    """Select the chunks"""
+    loader.mca_world.backup(debug)

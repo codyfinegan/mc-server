@@ -30,6 +30,8 @@ def default_config() -> dict:
         },
         "mca": {
             "bin": "/path/to/java -jar /path/to/mcaselector",
+            "compress": "/usr/bin/zstd -19 -T2",
+            "name": "%s.tar.zst",
         },
         "startup_script": "/path/to/startup_script.sh",
         "game_folder": "/path/to/game",
@@ -134,6 +136,8 @@ def default_config_toml() -> tomlkit.TOMLDocument:
     mca = tomlkit.table()
 
     mca.add("bin", cfg["mca"]["bin"])
+    mca.add("compress", cfg["mca"]["compress"])
+    mca.add("name", cfg["mca"]["name"])
     mca["bin"].comment(
         "Path to java & executable for mcaselect, eg /blah/java -jar /path/mcaselector.jar",
     )
