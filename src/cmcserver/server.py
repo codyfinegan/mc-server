@@ -25,21 +25,24 @@ def text_prefix(code: str = "SERVER") -> list:
     ]
 
 
-def seconds_to_countdown(seconds: int, range: Optional[List[int]] = None) -> list:
+def seconds_to_countdown(
+    seconds: int,
+    seconds_range: Optional[List[int]] = None,
+) -> list:
     # Be given a range of seconds, then break it down
     # into call points, and how long to wait in between each
 
     if seconds < 5:
         seconds = 10
 
-    if range is None:
-        range = [600, 300, 180, 120, 60, 30, 10, 5]
+    if seconds_range is None:
+        seconds_range = [600, 300, 180, 120, 60, 30, 10, 5]
 
     countdown = []
 
     # Find our range
     t_range = []
-    for step in range:
+    for step in seconds_range:
         if seconds >= step:
             t_range.append(step)
 
@@ -294,7 +297,7 @@ class ServerManager:
             % json.dumps(obj=message_list, indent=None, separators=(",", ":")),
         ]
         if play_sound:
-            commands.insert(0, f"/playsound minecraft:{sound} voice @a 0 0 0 10 0.6 1")
+            commands.insert(0, f"/playsound minecraft:{sound} master @a 0 0 0 10 0.6 1")
 
         debug_echo(self.config.debug, "\n".join(commands))
         self.rcon_send(commands)
@@ -359,13 +362,14 @@ class ServerManager:
                     f"The server is {action} in {text}",
                 )
 
-        # Final 5 second countdown
+        # Final 5-second countdown
         for i in range(5, 0, -1):
             self.tell_all(f"In {i}...")
             time.sleep(1)
 
+        # playsound minecraft:ui.toast.challenge_complete master @s ~ ~ ~ 0.49 1.29
         self.tell_all("Off we go!", sound="entity.tnt.primed")
-        time.sleep(1)
+        time.sleep(2)
         self.rcon_send(
             [
                 f"/kick @a Sever is {action}, check Discord for info",
