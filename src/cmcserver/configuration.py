@@ -28,6 +28,11 @@ def default_config() -> dict:
                 "push": False,
             },
         },
+        "mca": {
+            "bin": "/path/to/java -jar /path/to/mcaselector",
+            "compress": "/usr/bin/zstd -19 -T2",
+            "name": "%s.tar.zst",
+        },
         "startup_script": "/path/to/startup_script.sh",
         "game_folder": "/path/to/game",
         "mod_script": "/path/to/mod_downloads.sh",
@@ -127,6 +132,16 @@ def default_config_toml() -> tomlkit.TOMLDocument:
         "Syntax of the backup filename. If compression changes, change the extension here.",
     )
     doc.add("backups", table)
+
+    mca = tomlkit.table()
+
+    mca.add("bin", cfg["mca"]["bin"])
+    mca.add("compress", cfg["mca"]["compress"])
+    mca.add("name", cfg["mca"]["name"])
+    mca["bin"].comment(
+        "Path to java & executable for mcaselect, eg /blah/java -jar /path/mcaselector.jar",
+    )
+    doc.add("mca", mca)
 
     return doc
 

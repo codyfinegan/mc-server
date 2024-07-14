@@ -6,6 +6,7 @@ from click.testing import CliRunner
 
 from cmcserver.configuration import Config
 from cmcserver.main import cli
+from cmcserver.mca import MCAManager
 
 
 def patch_call(monkeypatch):
@@ -183,3 +184,91 @@ def test_helps():
         output = runner.invoke(cli, ["--config", config_file, "server"])
         assert "Usage: " in output.output
         assert "Restart the server" in output.output
+
+        # MCA help
+        output = runner.invoke(cli, ["--config", config_file, "mca"])
+        assert "Usage: " in output.output
+        assert "chunk management" in output.output
+
+
+def test_mca_select(monkeypatch):
+    runner = CliRunner()
+    with runner.isolated_filesystem() as r:
+        config_file_raw = Path(r).joinpath("cmcserver.toml")
+        config_file_raw.write_text("")
+        config_file = str(config_file_raw)
+
+        monkeypatch.setattr(
+            MCAManager,
+            "select",
+            lambda self, preview, debug: print(
+                f"Select called with preview: {str(preview)}, debug: {str(debug)}",
+            ),
+        )
+
+        output = runner.invoke(cli, ["--config", config_file, "mca", "select"])
+        assert "Select called with preview: False, debug: False" in output.output
+
+        output = runner.invoke(
+            cli,
+            ["--config", config_file, "mca", "select", "--preview"],
+        )
+        assert "Select called with preview: True, debug: False" in output.output
+
+        output = runner.invoke(
+            cli,
+            ["--config", config_file, "mca", "select", "--debug"],
+        )
+        assert "Select called with preview: False, debug: True" in output.output
+
+        output = runner.invoke(
+            cli,
+            ["--config", config_file, "mca", "select", "--debug", "--preview"],
+        )
+        assert "Select called with preview: True, debug: True" in output.output
+
+
+def test_mca_backup(monkeypatch):
+    runner = CliRunner()
+    with runner.isolated_filesystem() as r:
+        config_file_raw = Path(r).joinpath("cmcserver.toml")
+        config_file_raw.write_text("")
+        config_file = str(config_file_raw)
+
+        monkeypatch.setattr(
+            MCAManager,
+            "backup",
+            lambda self, debug: print(f"Backup called with debug: {str(debug)}"),
+        )
+
+        output = runner.invoke(cli, ["--config", config_file, "mca", "backup"])
+        assert "Backup called with debug: False" in output.output
+
+        output = runner.invoke(
+            cli,
+            ["--config", config_file, "mca", "backup", "--debug"],
+        )
+        assert "Backup called with debug: True" in output.output
+
+
+def test_mca_delete(monkeypatch):
+    runner = CliRunner()
+    with runner.isolated_filesystem() as r:
+        config_file_raw = Path(r).joinpath("cmcserver.toml")
+        config_file_raw.write_text("")
+        config_file = str(config_file_raw)
+
+        monkeypatch.setattr(
+            MCAManager,
+            "delete",
+            lambda self, debug: print(f"Delete called with debug: {str(debug)}"),
+        )
+
+        output = runner.invoke(cli, ["--config", config_file, "mca", "delete"])
+        assert "Delete called with debug: False" in output.output
+
+        output = runner.invoke(
+            cli,
+            ["--config", config_file, "mca", "delete", "--debug"],
+        )
+        assert "Delete called with debug: True" in output.output

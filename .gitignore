@@ -29,3 +29,6 @@ run-as-cron
 .coverage
 coverage.xml
 htmlcov/
+*.tar.zst
+*.csv
+.pytest_cache/
