@@ -183,3 +183,8 @@ def test_helps():
         output = runner.invoke(cli, ["--config", config_file, "server"])
         assert "Usage: " in output.output
         assert "Restart the server" in output.output
+
+        # MCA help
+        output = runner.invoke(cli, ["--config", config_file, "mca"])
+        assert "Usage: " in output.output
+        assert "chunk management" in output.output

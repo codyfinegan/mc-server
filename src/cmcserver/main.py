@@ -522,7 +522,7 @@ def write_readme_config(ctx: click.Context, readme: pathlib.Path):
 @click.option(
     "-w",
     "--world",
-    type=click.Choice(["overworld", "end"], case_sensitive=False),
+    type=click.Choice(["overworld", "end", "overworld-purge"], case_sensitive=False),
     default="overworld",
     help="Which world to apply the pruning to",
 )
@@ -557,7 +557,7 @@ def mca(ctx: click.Context, world: str) -> None:
 )
 @pass_loader
 def select(loader: ToolLoader, preview: bool, debug: bool) -> None:
-    """Select the chunks"""
+    """Generate the chunk selection csv file. Must be run before an export or delete."""
     loader.mca_world.select(preview, debug)
 
 
@@ -570,7 +570,7 @@ def select(loader: ToolLoader, preview: bool, debug: bool) -> None:
 )
 @pass_loader
 def backup(loader: ToolLoader, debug: bool) -> None:
-    """Select the chunks"""
+    """Backup the chunks that have been previously selected."""
     loader.mca_world.backup(debug)
 
 
@@ -583,5 +583,5 @@ def backup(loader: ToolLoader, debug: bool) -> None:
 )
 @pass_loader
 def delete(loader: ToolLoader, debug: bool) -> None:
-    """Select the chunks"""
+    """Delete the chunks that have been previously selected."""
     loader.mca_world.delete(debug)

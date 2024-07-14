@@ -47,6 +47,11 @@ service = "" # URL to the AWS service to use. Leave blank normally, this is used
 
 [backups.git]
 push = false
+
+[mca]
+bin = "/path/to/java -jar /path/to/mcaselector" # Path to java & executable for mcaselect, eg /blah/java -jar /path/mcaselector.jar
+compress = "/usr/bin/zstd -19 -T2"
+name = "%s.tar.zst"
 ```
 [//]: # (config-end)
 
@@ -66,6 +71,7 @@ Options:
 
 backup  Backup and restore the game using both remote and local options
 config  Edit the configuration file, or generate it if it does not exist
+mca     Commands relating to chunk management with MCA Selector
 readme  Update the readme with the config & commands
 server  See commands relating to the server
 
@@ -86,6 +92,11 @@ backup:
 backup aws:
   prune  Delete excess backup files from a configured AWS S3 bucket
   sync   Upload and download full backup files to a configured AWS S3 bucket
+
+mca:
+  backup  Backup the chunks that have been previously selected.
+  delete  Delete the chunks that have been previously selected.
+  select  Generate the chunk selection csv file.
 ```
 [//]: # (command-end)
 

@@ -31,3 +31,4 @@ coverage.xml
 htmlcov/
 *.tar.zst
 *.csv
+.pytest_cache/

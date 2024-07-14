@@ -9,6 +9,7 @@ from .configuration import Config
 
 
 def factory(world: str, config: Config):
+    world = world.replace("-", "")
     cls = globals()[f"MCA{world.title()}"]
     return cls(config)
 
@@ -220,3 +221,24 @@ class MCAEnd(MCAOverworld):
 
     def _world(self) -> Path:
         return super()._world().joinpath("DIM1")
+
+
+class MCAOverworldPurge(MCAManager):
+    def title(self):
+        return "Overworld Purge"
+
+    def _query(self) -> str:
+        return (
+            "!(!"
+            "(xPos < -1 OR xPos > 1 OR zPos < -1 OR zPos > 1)"
+            ' OR InhabitedTime > "10 minutes"'
+            ' OR Palette contains "minecraft:redstone_wire"'
+            ' OR Palette contains "minecraft:lapis_block"'
+            ' OR Palette contains "minecraft:nether_portal"'
+            ")"
+        )
+
+    def _world(self) -> Path:
+        return Path(self.config.get_str("game_folder")).joinpath(
+            Path(self.config.get_str("world")),
+        )
