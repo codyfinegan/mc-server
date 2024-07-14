@@ -9,8 +9,8 @@ from .configuration import Config
 
 
 def factory(world: str, config: Config):
-    world = world.replace("-", "")
-    cls = globals()[f"MCA{world.title()}"]
+    world = world.title().replace("-", "")
+    cls = globals()[f"MCA{world}"]
     return cls(config)
 
 
@@ -69,7 +69,7 @@ class MCAManager:
 
         code = self._run(debug, "select", "--query", query, "--output", output)
 
-        if code > 0:
+        if code and code > 0:
             click.echo("There was an error processing the command")
             return
 
@@ -192,14 +192,6 @@ class MCAOverworld(MCAManager):
         return Path(self.config.get_str("game_folder")).joinpath(
             Path(self.config.get_str("world")),
         )
-
-
-class MCANether(MCAOverworld):
-    def title(self):
-        return "The Nether"
-
-    def _world(self) -> Path:
-        return super()._world().joinpath("DIM-1")
 
 
 class MCAEnd(MCAOverworld):
