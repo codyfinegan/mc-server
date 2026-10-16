@@ -40,7 +40,7 @@ def test_config(monkeypatch):
         assert "startup_script" in output.output
 
         # Assert we get prompted for non-existent
-        output = runner.invoke(cli, ["config", "--config", str(config_file)])
+        output = runner.invoke(cli, ["config", "--config", str(config_file)], input="n")
         assert "Do you want to create it with default values" in output.output
         assert "No config file was created" in output.output
 
