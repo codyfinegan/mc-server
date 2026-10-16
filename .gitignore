@@ -20,7 +20,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-.python-version
 _version.py
 .cmcconfig.toml
 .vscode
