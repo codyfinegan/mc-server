@@ -134,7 +134,7 @@ class ServerManager:
             debug_echo(self.debug, str(e))
             host = self.config.data["server"]["host"]
             port = self.config.data["server"]["rcon_port"]
-            raise click.UsageError(f"Unable to connect to server {host}:{port}")
+            raise click.UsageError(f"Unable to connect to server {host}:{port}") from e
 
     def save_off(self):
         if not self.screen_exists():
@@ -290,7 +290,7 @@ class ServerManager:
             message_list = text_prefix() + message_list
 
         msgs = [msg["text"] for msg in message_list]
-        click.echo(f'Broadcasted: {"".join(msgs)}')
+        click.echo(f"Broadcasted: {''.join(msgs)}")
 
         commands = [
             "/tellraw @a %s"
@@ -328,7 +328,7 @@ class ServerManager:
         # If rcon is not configured then this might be a problem
 
         loaded = False
-        for i in range(10):
+        for _ in range(10):
             # We want to check if our screen window is alive
 
             # Are we alive?
@@ -381,7 +381,7 @@ class ServerManager:
         time.sleep(1)
         down = False
         if self.screen_exists():
-            for i in range(1, 100):
+            for _ in range(1, 100):
                 if not self.screen_exists():
                     down = True
                     break

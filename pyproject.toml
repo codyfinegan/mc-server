@@ -20,11 +20,8 @@ cmcserver = "cmcserver.main:cli"
 
 [dependency-groups]
 dev = [
-    "flake8",
-    "black",
-    "isort",
+    "ruff",
     "pre-commit",
-    "add-trailing-comma",
     "pytest",
     "coverage",
 ]
@@ -32,14 +29,19 @@ dev = [
 [tool.setuptools_scm]
 write_to = "src/cmcserver/_version.py"
 
-[tool.black]
-target-version = ['py311']
-line_length = 88
-extend-exclude = '_version.py'
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+extend-exclude = ["src/cmcserver/_version.py"]
 
-[tool.isort]
-profile = "black"
-line_length = 88
-known_first_party = ["cmcserver"]
-known_third_party = ["click", "mctools"]
-skip_gitignore = true
+[tool.ruff.lint]
+select = ["E", "F", "W", "C90", "B", "I"]
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 120
+
+[tool.ruff.lint.mccabe]
+max-complexity = 18
+
+[tool.ruff.lint.isort]
+known-first-party = ["cmcserver"]

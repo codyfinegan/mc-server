@@ -102,5 +102,6 @@ mca:
 
 ## Development
 Run `uv sync` to create the virtualenv with dev dependencies, then `uv run pytest` to run the tests.
+Linting and formatting use ruff (`uv run ruff check .` / `uv run ruff format .`).
 
 Project uses pre-commit. Install using `uv run pre-commit install` and then confirm the webhook passes.

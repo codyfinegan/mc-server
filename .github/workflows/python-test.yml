@@ -22,10 +22,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: uv sync --locked
-    - name: Lint with flake8
+    - name: Lint with ruff
       run: |
-        # stop the build if there are Python syntax errors or undefined names
-        uv run flake8 . --count --show-source --statistics
+        uv run ruff check --output-format=github .
+        uv run ruff format --check .
     - name: Test with pytest
       run: |
         uv run coverage run -m pytest . && uv run coverage xml && uv run coverage report
