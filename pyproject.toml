@@ -18,8 +18,16 @@ dynamic = ["version"]
 [project.scripts]
 cmcserver = "cmcserver.main:cli"
 
-[project.optional-dependencies]
-dev = ["flake8", "black", "isort[pyproject]", "pre-commit", "add-trailing-comma", "pytest", "coverage"]
+[dependency-groups]
+dev = [
+    "flake8",
+    "black",
+    "isort",
+    "pre-commit",
+    "add-trailing-comma",
+    "pytest",
+    "coverage",
+]
 
 [tool.setuptools_scm]
 write_to = "src/cmcserver/_version.py"

@@ -5,7 +5,7 @@ A python utility to manage my Minecraft server
 
 ## Installation
 Requires `zstd` for backup compression. Try `apt install zstd`.
-Clone the project, setup a virtual env and install `pip install .`
+Install with [uv](https://docs.astral.sh/uv/): clone the project and run `uv tool install .` to put `cmcserver` on your PATH.
 
 ### Configuration
 Generate the default config file using `cmcserver config` in the regular place. Run `cmcserver config --help` to see all of the available options.
@@ -101,4 +101,6 @@ mca:
 [//]: # (command-end)
 
 ## Development
-Project uses pre-commit. Install using `pre-commit install` and then confirm the webhook passes.
+Run `uv sync` to create the virtualenv with dev dependencies, then `uv run pytest` to run the tests.
+
+Project uses pre-commit. Install using `uv run pre-commit install` and then confirm the webhook passes.
