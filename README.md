@@ -105,3 +105,7 @@ Run `uv sync` to create the virtualenv with dev dependencies, then `uv run pytes
 Linting and formatting use ruff (`uv run ruff check .` / `uv run ruff format .`).
 
 Project uses pre-commit. Install using `uv run pre-commit install` and then confirm the webhook passes.
+
+Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/) (e.g. `feat: add backup pruning`, `fix(mca): handle empty region`).
+The pre-commit `commit-msg` hook enforces this locally, and CI checks every commit in a pull request plus the PR title.
+Use `uv run cz commit` for an interactive prompt.

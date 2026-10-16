@@ -24,10 +24,14 @@ dev = [
     "pre-commit",
     "pytest",
     "coverage",
+    "commitizen",
 ]
 
 [tool.setuptools_scm]
 write_to = "src/cmcserver/_version.py"
+
+[tool.commitizen]
+name = "cz_conventional_commits"
 
 [tool.ruff]
 target-version = "py313"
