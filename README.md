@@ -109,3 +109,5 @@ Project uses pre-commit. Install using `uv run pre-commit install` and then conf
 Commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/) (e.g. `feat: add backup pruning`, `fix(mca): handle empty region`).
 The pre-commit `commit-msg` hook enforces this locally, and CI checks every commit in a pull request plus the PR title.
 Use `uv run cz commit` for an interactive prompt.
+
+Releases are automated with [release-please](https://github.com/googleapis/release-please): merging to `main` updates a release PR with the next version and changelog, and merging that PR tags the release. The package version comes from that tag via setuptools_scm.
