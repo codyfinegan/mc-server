@@ -7,7 +7,10 @@ name = "cmcserver"
 description = "Helper tools for managing my Minecraft server"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "click>=8.5.0",
+    "pydantic>=2.14.1",
+]
 dynamic = ["version"]
 
 [dependency-groups]
@@ -17,6 +20,7 @@ dev = [
     "pytest",
     "coverage",
     "commitizen",
+    "mypy>=2.4.0",
 ]
 
 [tool.setuptools_scm]
@@ -34,6 +38,10 @@ omit = ["src/cmcserver/_version.py"]
 fail_under = 100
 show_missing = true
 exclude_also = ["if TYPE_CHECKING:"]
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
 
 [tool.ruff]
 target-version = "py313"
