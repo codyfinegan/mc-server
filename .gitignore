@@ -21,13 +21,9 @@ share/python-wheels/
 *.egg
 MANIFEST
 _version.py
-.cmcconfig.toml
 .vscode
 .idea
-run-as-cron
 .coverage
 coverage.xml
 htmlcov/
-*.tar.zst
-*.csv
 .pytest_cache/
