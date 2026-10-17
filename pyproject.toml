@@ -19,6 +19,9 @@ dev = [
     "commitizen",
 ]
 
+[tool.setuptools_scm]
+version_file = "src/cmcserver/_version.py"
+
 [tool.commitizen]
 name = "cz_conventional_commits"
 
