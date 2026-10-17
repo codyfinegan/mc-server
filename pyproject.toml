@@ -7,16 +7,8 @@ name = "cmcserver"
 description = "Helper tools for managing my Minecraft server"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = [
-    "click",
-    "mctools",
-    "tomlkit",
-    "boto3"
-]
+dependencies = []
 dynamic = ["version"]
-
-[project.scripts]
-cmcserver = "cmcserver.main:cli"
 
 [dependency-groups]
 dev = [
@@ -26,9 +18,6 @@ dev = [
     "coverage",
     "commitizen",
 ]
-
-[tool.setuptools_scm]
-write_to = "src/cmcserver/_version.py"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
