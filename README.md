@@ -4,7 +4,7 @@ A python utility to manage my Minecraft server
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/codyfinegan/mc-server/main.svg)](https://results.pre-commit.ci/latest/github/codyfinegan/mc-server/main) ![python tests](https://img.shields.io/github/actions/workflow/status/codyfinegan/mc-server/python-test.yml) ![license](https://img.shields.io/github/license/codyfinegan/mc-server) ![language](https://img.shields.io/github/languages/top/codyfinegan/mc-server) | [![codecov](https://codecov.io/gh/codyfinegan/mc-server/branch/main/graph/badge.svg?token=H0Q8D38QJP)](https://codecov.io/gh/codyfinegan/mc-server)
 
 ## Installation
-Install with [uv](https://docs.astral.sh/uv/): clone the project and run `uv tool install .` to put `cmcserver` on your PATH.
+Install with [uv](https://docs.astral.sh/uv/): clone the project and run `uv tool install .` to put `mctl` on your PATH.
 
 ## Development
 Run `uv sync` to create the virtualenv with dev dependencies, then `uv run pytest` to run the tests.

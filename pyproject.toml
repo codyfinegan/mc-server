@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cmcserver"
+name = "mctl"
 description = "Helper tools for managing my Minecraft server"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -24,15 +24,15 @@ dev = [
 ]
 
 [tool.setuptools_scm]
-version_file = "src/cmcserver/_version.py"
+version_file = "src/mctl/_version.py"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
 
 [tool.coverage.run]
 branch = true
-source = ["cmcserver"]
-omit = ["src/cmcserver/_version.py"]
+source = ["mctl"]
+omit = ["src/mctl/_version.py"]
 
 [tool.coverage.report]
 fail_under = 100
@@ -46,7 +46,7 @@ plugins = ["pydantic.mypy"]
 [tool.ruff]
 target-version = "py313"
 line-length = 88
-extend-exclude = ["src/cmcserver/_version.py"]
+extend-exclude = ["src/mctl/_version.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "C90", "B", "I"]
@@ -58,4 +58,4 @@ max-line-length = 120
 max-complexity = 18
 
 [tool.ruff.lint.isort]
-known-first-party = ["cmcserver"]
+known-first-party = ["mctl"]
