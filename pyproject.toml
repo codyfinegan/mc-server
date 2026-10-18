@@ -13,6 +13,9 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[project.scripts]
+mctl = "mctl.cli:main"
+
 [dependency-groups]
 dev = [
     "ruff",
