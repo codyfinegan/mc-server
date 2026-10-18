@@ -26,6 +26,8 @@ jobs:
       run: |
         uv run ruff check --output-format=github .
         uv run ruff format --check .
+    - name: Type check
+      run: uv run mypy src tests
     - name: Test with pytest
       run: |
         uv run coverage run -m pytest . && uv run coverage xml && uv run coverage report
