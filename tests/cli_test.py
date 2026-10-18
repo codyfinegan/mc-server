@@ -4,9 +4,10 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
-from click.testing import CliRunner
+from click.testing import CliRunner, Result
 
 from mctl.cli import cli, main
+from mctl.doctor import Check, Status
 
 BAD_TOML = '[server]\nstart_command = "x"\nport = 1\n'
 
@@ -151,3 +152,61 @@ def test_main_runs_cli(
 
     assert exc.value.code == 0
     assert capsys.readouterr().out.startswith("mctl, version ")
+
+
+def _doctor(
+    runner: CliRunner,
+    path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    checks: list[Check],
+) -> Result:
+    monkeypatch.setattr("mctl.cli.doctor.run_checks", lambda settings: checks)
+    return runner.invoke(cli, ["--config", str(path), "doctor"])
+
+
+def test_doctor_all_ok(
+    runner: CliRunner,
+    write_config: Callable[[str], Path],
+    minimal_toml: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    checks = [
+        Check("java", Status.OK, "/usr/bin/java (Java 25)"),
+        Check("restic", Status.SKIP, "[restic] not configured"),
+    ]
+
+    result = _doctor(runner, write_config(minimal_toml), monkeypatch, checks)
+
+    assert result.exit_code == 0
+    assert result.output == (
+        "✓ java    /usr/bin/java (Java 25)\n- restic  [restic] not configured\n"
+    )
+
+
+def test_doctor_failure_prints_every_check_then_exits_1(
+    runner: CliRunner,
+    write_config: Callable[[str], Path],
+    minimal_toml: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    checks = [
+        Check("java", Status.FAIL, "not found"),
+        Check("screen", Status.OK, "/usr/bin/screen"),
+    ]
+
+    result = _doctor(runner, write_config(minimal_toml), monkeypatch, checks)
+
+    assert result.exit_code == 1
+    assert result.output.splitlines() == [
+        "✗ java    not found",
+        "✓ screen  /usr/bin/screen",
+    ]
+
+
+def test_doctor_bad_config_exits_2(
+    runner: CliRunner, write_config: Callable[[str], Path]
+) -> None:
+    result = runner.invoke(cli, ["--config", str(write_config(BAD_TOML)), "doctor"])
+
+    assert result.exit_code == 2
+    assert "server.dir: Field required" in result.output
